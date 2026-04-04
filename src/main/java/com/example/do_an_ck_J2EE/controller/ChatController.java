@@ -65,6 +65,13 @@ public class ChatController {
         return chatService.getAllChatUsers(adminUsername);
     }
 
+    @GetMapping("/admin/current-user")
+    @ResponseBody
+    public String getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth.getName();
+    }
+
     @GetMapping("/admin/chat/messages")
     @ResponseBody
     public List<ChatMessage> getMessages(@RequestParam String username) {

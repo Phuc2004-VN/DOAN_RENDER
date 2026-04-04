@@ -7,6 +7,9 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +60,9 @@ public class ChatController {
     @GetMapping("/admin/chat/users")
     @ResponseBody
     public List<String> getUsers() {
-        return chatService.getAllChatUsers(ADMIN);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String adminUsername = auth.getName(); // Lấy username của người đang đăng nhập
+        return chatService.getAllChatUsers(adminUsername);
     }
 
     @GetMapping("/admin/chat/messages")

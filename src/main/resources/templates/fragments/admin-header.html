@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="adminHeader(pageTitle, pageSubtitle)" class="topbar-wrap">
+    <div class="container topbar">
+        <div class="brand-block">
+            <div class="brand-icon">🛠</div>
+            <div class="brand-text">
+                <h1 th:text="${pageTitle}">GreenSpace Admin</h1>
+                <p th:text="${pageSubtitle}">Quản trị hệ thống</p>
+            </div>
+        </div>
+
+        <div class="topbar-actions">
+            <a th:href="@{/admin}" class="btn btn-outline">📊 Dashboard</a>
+            <a th:href="@{/admin/plants}" class="btn btn-outline">🌱 Cây</a>
+            <a th:href="@{/admin/orders}" class="btn btn-outline">📦 Đơn hàng</a>
+            <a th:href="@{/admin/users}" class="btn btn-outline">👤 User</a>
+            <a th:href="@{/}" class="btn btn-blue">🏠 Trang chủ</a>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

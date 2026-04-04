@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<th:block th:fragment="header">
+    <header class="site-header">
+        <div class="topbar-wrap">
+            <div class="container topbar">
+
+                <a th:href="@{/}" class="brand-block" style="text-decoration:none; color:inherit;">
+                    <div class="brand-icon">🌿</div>
+                    <div class="brand-text">
+                        <span class="brand-title">GreenSpace</span>
+                        <span class="brand-subtitle">Cây xanh cho không gian sống tinh tế</span>
+                    </div>
+                </a>
+
+                <div class="topbar-actions">
+
+                    <a th:href="@{/}" class="btn btn-ghost">Trang chủ</a>
+                    <a th:href="@{/cart}" class="btn btn-ghost">Giỏ hàng</a>
+                    <a th:href="@{/order/history}" class="btn btn-ghost">Đơn hàng</a>
+
+                    <a th:if="${#authorization.expression('hasAuthority(''ADMIN'') or hasAuthority(''ROLE_ADMIN'')')}"
+                       th:href="@{/admin}"
+                       class="btn btn-accent">
+                        Dashboard
+                    </a>
+
+                    <div th:if="${#authorization.expression('isAuthenticated()')}"
+                         class="notification-wrap">
+
+                        <button type="button"
+                                class="notification-bell"
+                                id="notificationBell"
+                                th:attr="data-username=${#authentication.name},
+                                         data-is-admin=${#authorization.expression('hasAuthority(''ADMIN'') or hasAuthority(''ROLE_ADMIN'')')}">
+                            <span class="notification-bell-icon">🔔</span>
+                            <span id="notificationBellBadge"
+                                  class="notification-bell-badge"
+                                  style="display:none;">0</span>
+                        </button>
+                    </div>
+
+                    <div th:if="${#authorization.expression('isAuthenticated()')}"
+                         class="user-chip"
+                         th:attr="data-username=${#authentication.name}">
+                        <div class="user-chip-icon">👋</div>
+                        <div class="user-chip-text">
+                            <span class="user-chip-label">Xin chào</span>
+                            <span th:text="${#authentication.name}" class="user-chip-name">user</span>
+                        </div>
+                    </div>
+
+                    <a th:if="${#authorization.expression('isAuthenticated()')}"
+                       th:href="@{/logout}"
+                       class="btn btn-dark">
+                        Đăng xuất
+                    </a>
+
+                    <a th:if="${!#authorization.expression('isAuthenticated()')}"
+                       th:href="@{/login}"
+                       class="btn btn-dark">
+                        Đăng nhập
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </header>
+
+    <div th:if="${#authorization.expression('isAuthenticated()')}"
+         id="notificationPanelOverlay"
+         class="notification-panel-overlay"
+         style="display:none;">
+        <div id="notificationPanel"
+             class="notification-panel-fixed">
+            <div class="notification-panel-head">
+                <span>Thông báo</span>
+                <button type="button"
+                        class="notification-close"
+                        id="notificationCloseBtn">×</button>
+            </div>
+
+            <div id="notificationPanelBody" class="notification-panel-body">
+                <div class="notification-empty">Chưa có thông báo nào</div>
+            </div>
+
+            <div id="notificationPanelFooter"
+                 class="notification-panel-footer"
+                 style="display:none;"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+
+    <script>
+        let headerNotificationStomp = null;
+        let headerUnreadCount = 0;
+        let adminNotifications = [];
+        let adminNotificationSummary = {
+            messages: 0,
+            orders: 0,
+            total: 0
+        };
+
+        function getHeaderBell() {
+            return document.getElementById('notificationBell');
+        }
+
+        function getHeaderOverlay() {
+            return document.getElementById('notificationPanelOverlay');
+        }
+
+        function getHeaderUsername() {
+            const bell = getHeaderBell();
+            if (!bell) return '';
+            return (bell.getAttribute('data-username') || '').trim();
+        }
+
+        function isHeaderAdmin() {
+            const bell = getHeaderBell();
+            if (!bell) return false;
+            return (bell.getAttribute('data-is-admin') || '').trim().toLowerCase() === 'true';
+        }
+
+        function getAdminNotificationStorageKey() {
+            return 'greenspace_admin_notifications_' + getHeaderUsername();
+        }
+
+        function saveAdminNotificationsToStorage() {
+            try {
+                localStorage.setItem(
+                    getAdminNotificationStorageKey(),
+                    JSON.stringify(adminNotifications || [])
+                );
+            } catch (e) {
+                console.error('Không lưu được localStorage notifications:', e);
+            }
+        }
+
+        function loadAdminNotificationsFromStorage() {
+            try {
+                const raw = localStorage.getItem(getAdminNotificationStorageKey());
+                if (!raw) {
+                    adminNotifications = [];
+                    return;
+                }
+
+                const parsed = JSON.parse(raw);
+                adminNotifications = Array.isArray(parsed) ? parsed.slice(0, 20) : [];
+            } catch (e) {
+                console.error('Không đọc được localStorage notifications:', e);
+                adminNotifications = [];
+            }
+        }
+
+        function isNotificationPanelOpen() {
+            const overlay = getHeaderOverlay();
+            return !!overlay && overlay.style.display === 'flex';
+        }
+
+        function openNotificationPanel() {
+            const overlay = getHeaderOverlay();
+            if (!overlay) return;
+            overlay.style.display = 'flex';
+            renderNotificationPanel();
+        }
+
+        function closeNotificationPanel() {
+            const overlay = getHeaderOverlay();
+            if (!overlay) return;
+            overlay.style.display = 'none';
+        }
+
+        function toggleNotificationPanel() {
+            if (isNotificationPanelOpen()) {
+                closeNotificationPanel();
+            } else {
+                openNotificationPanel();
+            }
+        }
+
+        function escapeHtml(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function setHeaderBellCount(count) {
+            const badge = document.getElementById('notificationBellBadge');
+            if (!badge) return;
+
+            headerUnreadCount = Number(count) || 0;
+
+            if (headerUnreadCount > 0) {
+                badge.textContent = headerUnreadCount;
+                badge.style.display = 'inline-flex';
+            } else {
+                badge.textContent = '0';
+                badge.style.display = 'none';
+            }
+
+            renderNotificationPanel();
+        }
+
+        function increaseHeaderBellCount(step = 1) {
+            setHeaderBellCount(headerUnreadCount + step);
+        }
+
+        function resetHeaderBellCount() {
+            setHeaderBellCount(0);
+        }
+
+        function addAdminNotification(item) {
+            if (!item) return;
+
+            adminNotifications.unshift(item);
+
+            if (adminNotifications.length > 20) {
+                adminNotifications = adminNotifications.slice(0, 20);
+            }
+
+            saveAdminNotificationsToStorage();
+            renderNotificationPanel();
+        }
+
+        function clearNotificationsByTypeIfCountZero() {
+            if (Number(adminNotificationSummary.orders || 0) === 0) {
+                adminNotifications = adminNotifications.filter(item =>
+                    item && item.type !== 'ORDER' && item.type !== 'SUMMARY_ORDER'
+                );
+            }
+
+            if (Number(adminNotificationSummary.messages || 0) === 0) {
+                adminNotifications = adminNotifications.filter(item =>
+                    item && item.type !== 'CHAT' && item.type !== 'SUMMARY_CHAT'
+                );
+            }
+
+            saveAdminNotificationsToStorage();
+        }
+
+        function rebuildSummaryNotifications() {
+            adminNotifications = adminNotifications.filter(item =>
+                item && item.type !== 'SUMMARY_CHAT' && item.type !== 'SUMMARY_ORDER'
+            );
+
+            const hasRealChat = adminNotifications.some(item => item && item.type === 'CHAT');
+            const hasRealOrder = adminNotifications.some(item => item && item.type === 'ORDER');
+
+            if (!hasRealChat && Number(adminNotificationSummary.messages || 0) > 0) {
+                adminNotifications.push({
+                    type: 'SUMMARY_CHAT',
+                    count: Number(adminNotificationSummary.messages || 0)
+                });
+            }
+
+            if (!hasRealOrder && Number(adminNotificationSummary.orders || 0) > 0) {
+                adminNotifications.push({
+                    type: 'SUMMARY_ORDER',
+                    count: Number(adminNotificationSummary.orders || 0)
+                });
+            }
+
+            if (adminNotifications.length > 20) {
+                adminNotifications = adminNotifications.slice(0, 20);
+            }
+
+            saveAdminNotificationsToStorage();
+        }
+
+        function getAdminManageTarget() {
+            const messageCount = Number(adminNotificationSummary.messages || 0);
+            const orderCount = Number(adminNotificationSummary.orders || 0);
+
+            if (messageCount > 0 && orderCount === 0) {
+                return '/admin/chat';
+            }
+
+            if (orderCount > 0 && messageCount === 0) {
+                return '/admin/orders';
+            }
+
+            if (messageCount > 0 && orderCount > 0) {
+                const firstActive = adminNotifications.find(item => {
+                    if (!item) return false;
+                    if ((item.type === 'CHAT' || item.type === 'SUMMARY_CHAT') && messageCount > 0) return true;
+                    if ((item.type === 'ORDER' || item.type === 'SUMMARY_ORDER') && orderCount > 0) return true;
+                    return false;
+                });
+
+                if (firstActive) {
+                    return (firstActive.type === 'ORDER' || firstActive.type === 'SUMMARY_ORDER')
+                        ? '/admin/orders'
+                        : '/admin/chat';
+                }
+
+                return '/admin';
+            }
+
+            return '/admin';
+        }
+
+        function goToAdminChat() {
+            window.location.href = '/admin/chat';
+        }
+
+        function goToAdminOrders() {
+            window.location.href = '/admin/orders';
+        }
+
+        function renderUserNotificationPanel() {
+            const body = document.getElementById('notificationPanelBody');
+            const footer = document.getElementById('notificationPanelFooter');
+            if (!body || !footer) return;
+
+            if (headerUnreadCount > 0) {
+                body.innerHTML = `
+                    <div class="notification-item">
+                        <div class="notification-item-icon">💬</div>
+                        <div class="notification-item-content">
+                            <div class="notification-item-title">Thông báo chat</div>
+                            <div class="notification-item-sub">Bạn có ${headerUnreadCount} tin nhắn chưa đọc</div>
+                        </div>
+                    </div>
+                `;
+
+                footer.style.display = 'flex';
+                footer.innerHTML = `
+                    <button type="button" class="notification-action-btn" id="openChatFromBellBtn">
+                        Mở chat
+                    </button>
+                `;
+
+                const btn = document.getElementById('openChatFromBellBtn');
+                if (btn) {
+                    btn.onclick = async function () {
+                        closeNotificationPanel();
+
+                        if (typeof toggleChatBox === 'function') {
+                            const box = document.getElementById('chatBox');
+                            if (box && !box.classList.contains('show')) {
+                                await toggleChatBox();
+                            }
+                        }
+
+                        if (typeof markUserRead === 'function') {
+                            await markUserRead();
+                        }
+
+                        resetHeaderBellCount();
+                    };
+                }
+            } else {
+                body.innerHTML = `<div class="notification-empty">Không có tin nhắn chưa đọc</div>`;
+                footer.style.display = 'none';
+                footer.innerHTML = '';
+            }
+        }
+
+        function renderAdminNotificationItem(item) {
+            if (!item) return '';
+
+            if (item.type === 'ORDER') {
+                return `
+                    <div class="notification-item" onclick="goToAdminOrders()" style="cursor:pointer;">
+                        <div class="notification-item-icon">🛒</div>
+                        <div class="notification-item-content">
+                            <div class="notification-item-title">Thông báo đơn</div>
+                            <div class="notification-item-sub">
+                                Đơn hàng mới #${escapeHtml(item.orderId)} • ${escapeHtml(item.username)} vừa đặt • ${escapeHtml(item.paymentMethod || 'COD')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (item.type === 'CHAT') {
+                return `
+                    <div class="notification-item" onclick="goToAdminChat()" style="cursor:pointer;">
+                        <div class="notification-item-icon">💬</div>
+                        <div class="notification-item-content">
+                            <div class="notification-item-title">Thông báo chat</div>
+                            <div class="notification-item-sub">
+                                ${escapeHtml(item.sender)} vừa nhắn: ${escapeHtml(item.content)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (item.type === 'SUMMARY_CHAT') {
+                return `
+                    <div class="notification-item" onclick="goToAdminChat()" style="cursor:pointer;">
+                        <div class="notification-item-icon">💬</div>
+                        <div class="notification-item-content">
+                            <div class="notification-item-title">Thông báo chat</div>
+                            <div class="notification-item-sub">
+                                Bạn có ${escapeHtml(item.count)} tin nhắn chưa đọc
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (item.type === 'SUMMARY_ORDER') {
+                return `
+                    <div class="notification-item" onclick="goToAdminOrders()" style="cursor:pointer;">
+                        <div class="notification-item-icon">🛒</div>
+                        <div class="notification-item-content">
+                            <div class="notification-item-title">Thông báo đơn</div>
+                            <div class="notification-item-sub">
+                                Bạn có ${escapeHtml(item.count)} đơn hàng mới cần xử lý
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            return '';
+        }
+
+        function renderAdminNotificationPanel() {
+            const body = document.getElementById('notificationPanelBody');
+            const footer = document.getElementById('notificationPanelFooter');
+            if (!body || !footer) return;
+
+            clearNotificationsByTypeIfCountZero();
+            rebuildSummaryNotifications();
+
+            if (adminNotifications.length === 0 && headerUnreadCount === 0) {
+                body.innerHTML = `<div class="notification-empty">Hiện chưa có thông báo nào</div>`;
+                footer.style.display = 'none';
+                footer.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            adminNotifications.slice(0, 8).forEach(item => {
+                html += renderAdminNotificationItem(item);
+            });
+
+            body.innerHTML = html || `<div class="notification-empty">Hiện chưa có thông báo nào</div>`;
+
+            footer.style.display = 'flex';
+            footer.innerHTML = `
+                <button type="button" class="notification-action-btn" id="openAdminNotificationsBtn">
+                    Mở quản lý
+                </button>
+            `;
+
+            const btn = document.getElementById('openAdminNotificationsBtn');
+            if (btn) {
+                btn.onclick = function () {
+                    window.location.href = getAdminManageTarget();
+                };
+            }
+        }
+
+        function renderNotificationPanel() {
+            if (isHeaderAdmin()) {
+                renderAdminNotificationPanel();
+            } else {
+                renderUserNotificationPanel();
+            }
+        }
+
+        async function loadHeaderNotificationCount() {
+            const username = getHeaderUsername();
+            if (!username) return;
+
+            try {
+                let count = 0;
+
+                if (isHeaderAdmin()) {
+                    const response = await fetch('/api/notifications');
+                    if (!response.ok) throw new Error('Load admin notifications failed');
+
+                    const data = await response.json();
+
+                    adminNotificationSummary.messages = Number(data.messages || 0);
+                    adminNotificationSummary.orders = Number(data.orders || 0);
+                    adminNotificationSummary.total = Number(data.total || 0);
+
+                    clearNotificationsByTypeIfCountZero();
+                    rebuildSummaryNotifications();
+
+                    count = adminNotificationSummary.total;
+                } else {
+                    const response = await fetch('/chat/unread-count?username=' + encodeURIComponent(username));
+                    if (!response.ok) throw new Error('Load user unread failed');
+
+                    count = await response.json();
+                }
+
+                setHeaderBellCount(count);
+            } catch (e) {
+                console.error('Lỗi load badge chuông:', e);
+            }
+        }
+
+        function connectHeaderNotificationSocket() {
+            const username = getHeaderUsername();
+            if (!username) return;
+
+            const socket = new SockJS('/ws-chat');
+            headerNotificationStomp = Stomp.over(socket);
+            headerNotificationStomp.debug = null;
+
+            headerNotificationStomp.connect({}, function () {
+                if (isHeaderAdmin()) {
+                    headerNotificationStomp.subscribe('/topic/admin', function (msg) {
+                        const data = JSON.parse(msg.body || '{}');
+                        if (!data) return;
+
+                        if (data.type === 'ORDER') {
+                            adminNotificationSummary.orders = Number(adminNotificationSummary.orders || 0) + 1;
+                            adminNotificationSummary.total = Number(adminNotificationSummary.total || 0) + 1;
+
+                            addAdminNotification({
+                                type: 'ORDER',
+                                orderId: data.orderId,
+                                username: data.username || 'user',
+                                paymentMethod: data.paymentMethod || 'COD'
+                            });
+
+                            clearNotificationsByTypeIfCountZero();
+                            rebuildSummaryNotifications();
+                            increaseHeaderBellCount();
+                            return;
+                        }
+
+                        if (!data.content) return;
+
+                        const sender = (data.sender || '').trim().toLowerCase();
+                        if (sender !== 'ad') {
+                            adminNotificationSummary.messages = Number(adminNotificationSummary.messages || 0) + 1;
+                            adminNotificationSummary.total = Number(adminNotificationSummary.total || 0) + 1;
+
+                            addAdminNotification({
+                                type: 'CHAT',
+                                sender: data.sender || 'User',
+                                content: data.content || ''
+                            });
+
+                            clearNotificationsByTypeIfCountZero();
+                            rebuildSummaryNotifications();
+                            increaseHeaderBellCount();
+                        }
+                    });
+                } else {
+                    headerNotificationStomp.subscribe('/topic/user/' + username, function (msg) {
+                        const data = JSON.parse(msg.body || '{}');
+                        if (!data || !data.content) return;
+
+                        const sender = (data.sender || '').trim().toLowerCase();
+                        if (sender === 'ad') {
+                            increaseHeaderBellCount();
+                        }
+                    });
+                }
+            }, function (error) {
+                console.error('Header WebSocket lỗi:', error);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const bell = document.getElementById('notificationBell');
+            const closeBtn = document.getElementById('notificationCloseBtn');
+            const overlay = document.getElementById('notificationPanelOverlay');
+            const panel = document.getElementById('notificationPanel');
+
+            if (!bell) return;
+
+            if (isHeaderAdmin()) {
+                loadAdminNotificationsFromStorage();
+            }
+
+            bell.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleNotificationPanel();
+            });
+
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    closeNotificationPanel();
+                });
+            }
+
+            if (overlay) {
+                overlay.addEventListener('click', function () {
+                    closeNotificationPanel();
+                });
+            }
+
+            if (panel) {
+                panel.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                });
+            }
+
+            loadHeaderNotificationCount();
+            connectHeaderNotificationSocket();
+            renderNotificationPanel();
+        });
+    </script>
+</th:block>
+
+</body>
+</html>

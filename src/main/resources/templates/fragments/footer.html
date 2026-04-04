@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<footer th:fragment="footer" class="site-footer">
+    <div class="container">
+        <div class="footer-grid">
+
+            <div class="footer-col footer-brand">
+                <div class="footer-logo">
+                    <span class="footer-logo-icon">🌿</span>
+                    <div>
+                        <h3>GreenSpace</h3>
+                        <p>Web bán cây cảnh</p>
+                    </div>
+                </div>
+
+                <p class="footer-desc">
+                    Nơi mang thiên nhiên vào không gian sống với những chậu cây được chọn lọc,
+                    giao diện thân thiện và trải nghiệm mua sắm dễ chịu hơn mỗi ngày.
+                </p>
+            </div>
+
+            <div class="footer-col">
+                <h4>Liên kết nhanh</h4>
+                <div class="footer-links">
+                    <a th:href="@{/}">Trang chủ</a>
+                    <a th:href="@{/cart}">Giỏ hàng</a>
+                    <a th:href="@{/order/history}">Đơn hàng</a>
+                </div>
+            </div>
+
+            <div class="footer-col">
+                <h4>Liên hệ</h4>
+                <div class="footer-contact">
+                    <p>Email: support@greenspace.vn</p>
+                    <p>Hotline: 0123 456 789</p>
+                    <p>Thời gian hỗ trợ: 08:00 - 21:00</p>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer-bottom">
+            <p>© 2026 GreenSpace. All rights reserved.</p>
+        </div>
+    </div>
+
+    <th:block th:if="${#authorization.expression('isAuthenticated() and !hasAuthority(''ROLE_ADMIN'') and !hasAuthority(''ADMIN'')')}">
+
+        <div id="floatingChatButton"
+             class="floating-chat-button"
+             title="Chat hỗ trợ"
+             onclick="toggleChatBox()">
+            <span>💬</span>
+            <span id="chat-badge" class="floating-chat-badge" style="display:none;">0</span>
+        </div>
+
+        <div id="chatBox" class="chat-box">
+            <div class="chat-header">
+                <div class="chat-header-left">
+                    <div class="chat-avatar">💬</div>
+                    <div>
+                        <div class="chat-header-title">Hỗ trợ khách hàng</div>
+                        <div class="chat-header-subtitle">Admin sẽ phản hồi khi có mặt</div>
+                    </div>
+                </div>
+
+                <button type="button" class="chat-close" onclick="closeChatBox()">×</button>
+            </div>
+
+            <div id="chatMessages" class="chat-messages">
+                <div id="chatEmptyState" class="chat-empty">
+                    Xin chào 👋<br>
+                    Bạn cần hỗ trợ gì thì nhắn cho admin tại đây nhé.
+                </div>
+            </div>
+
+            <div class="chat-input-wrap">
+                <div class="chat-input">
+                    <input id="chatInput"
+                           type="text"
+                           placeholder="Nhập tin nhắn..."
+                           onkeydown="handleChatEnter(event)">
+                    <button id="chatSendBtn" type="button" onclick="sendMessage()">Gửi</button>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+
+        <script>
+            const ROLE_ADMIN = 'ad';
+            let stompClient = null;
+            let sendingUserMessage = false;
+
+            function normalizeText(value) {
+                return (value || '').trim().toLowerCase();
+            }
+
+            function getUsername() {
+                const userChip = document.querySelector('.user-chip[data-username]');
+                if (userChip) {
+                    const value = (userChip.getAttribute('data-username') || '').trim();
+                    if (value) return value;
+                }
+
+                const userName = document.querySelector('.user-chip-name');
+                if (userName) {
+                    const value = (userName.textContent || '').trim();
+                    if (value) return value;
+                }
+
+                return 'unknown';
+            }
+
+            function isChatOpen() {
+                const box = document.getElementById('chatBox');
+                return !!(box && box.classList.contains('show'));
+            }
+
+            function focusChatInput() {
+                const input = document.getElementById('chatInput');
+                if (input) {
+                    setTimeout(() => input.focus(), 100);
+                }
+            }
+
+            function setBadge(count) {
+                const badge = document.getElementById('chat-badge');
+                if (!badge) return;
+
+                const safeCount = Number(count) || 0;
+                if (safeCount > 0) {
+                    badge.textContent = safeCount;
+                    badge.style.display = 'inline-flex';
+                } else {
+                    badge.textContent = '0';
+                    badge.style.display = 'none';
+                }
+            }
+
+            function increaseBadge() {
+    const badge = document.getElementById('chat-badge');
+    if (!badge) return;
+
+    let count = parseInt(badge.textContent || '0', 10);
+    if (isNaN(count)) count = 0;
+
+    count++;
+    setBadge(count);
+}
+
+            function resetBadge() {
+                setBadge(0);
+
+                if (typeof resetHeaderBellCount === 'function') {
+                    resetHeaderBellCount();
+                }
+            }
+
+            function appendMessage(sender, content) {
+                const box = document.getElementById('chatMessages');
+                const empty = document.getElementById('chatEmptyState');
+
+                if (!box || !content) return;
+
+                if (empty) {
+                    empty.style.display = 'none';
+                }
+
+                const currentEmpty = box.querySelector('.chat-empty');
+                if (currentEmpty) {
+                    currentEmpty.remove();
+                }
+
+                const div = document.createElement('div');
+                div.classList.add('msg');
+
+                if (normalizeText(sender) === normalizeText(getUsername())) {
+                    div.classList.add('me');
+                } else {
+                    div.classList.add('other');
+                }
+
+                div.textContent = content;
+                box.appendChild(div);
+                box.scrollTop = box.scrollHeight;
+            }
+
+            function renderHistory(messages) {
+                const box = document.getElementById('chatMessages');
+                if (!box) return;
+
+                box.innerHTML = '';
+
+                if (!messages || messages.length === 0) {
+                    box.innerHTML = `
+                        <div id="chatEmptyState" class="chat-empty">
+                            Xin chào 👋<br>
+                            Bạn cần hỗ trợ gì thì nhắn cho admin tại đây nhé.
+                        </div>
+                    `;
+                    return;
+                }
+
+                messages.forEach(msg => appendMessage(msg.sender, msg.content));
+            }
+
+            async function loadChatHistory() {
+                const username = getUsername();
+                if (!username || username === 'unknown') return;
+
+                try {
+                    const response = await fetch('/chat/history?username=' + encodeURIComponent(username));
+                    if (!response.ok) {
+                        throw new Error('Load history failed');
+                    }
+
+                    const messages = await response.json();
+                    renderHistory(messages);
+                } catch (e) {
+                    console.error('Lỗi load lịch sử chat user:', e);
+                }
+            }
+
+            async function loadUnreadCount() {
+                const username = getUsername();
+                if (!username || username === 'unknown') return;
+
+                try {
+                    const response = await fetch('/chat/unread-count?username=' + encodeURIComponent(username));
+                    if (!response.ok) {
+                        throw new Error('Load unread failed');
+                    }
+
+                    const count = await response.json();
+                    setBadge(count);
+                } catch (e) {
+                    console.error('Lỗi load unread user:', e);
+                }
+            }
+
+            async function markUserRead() {
+                const username = getUsername();
+                if (!username || username === 'unknown') return;
+
+                try {
+                    await fetch('/chat/read?username=' + encodeURIComponent(username), {
+                        method: 'POST'
+                    });
+
+                    resetBadge();
+                } catch (e) {
+                    console.error('Lỗi mark read user:', e);
+                }
+            }
+
+            async function toggleChatBox() {
+                const box = document.getElementById('chatBox');
+                if (!box) return;
+
+                box.classList.toggle('show');
+
+                if (box.classList.contains('show')) {
+                    await loadChatHistory();
+                    await markUserRead();
+                    focusChatInput();
+                }
+            }
+
+            function closeChatBox() {
+                const box = document.getElementById('chatBox');
+                if (!box) return;
+                box.classList.remove('show');
+            }
+
+            function handleChatEnter(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    sendMessage();
+                }
+            }
+
+            async function sendMessage() {
+                const input = document.getElementById('chatInput');
+                const sendBtn = document.getElementById('chatSendBtn');
+
+                if (!input || !sendBtn) return;
+
+                const content = input.value.trim();
+                if (!content) return;
+
+                const myUsername = getUsername();
+
+                if (!myUsername || myUsername === 'unknown') {
+                    alert('Không lấy được tên người dùng để gửi tin nhắn.');
+                    return;
+                }
+
+                if (sendingUserMessage) return;
+
+                sendingUserMessage = true;
+                sendBtn.disabled = true;
+
+                try {
+                    const response = await fetch('/chat/send', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            sender: myUsername,
+                            receiver: ROLE_ADMIN,
+                            content: content
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Gửi tin nhắn thất bại');
+                    }
+
+                    input.value = '';
+                    focusChatInput();
+                } catch (e) {
+                    console.error('Gửi tin nhắn thất bại', e);
+                    alert('Không gửi được tin nhắn.');
+                } finally {
+                    sendingUserMessage = false;
+                    sendBtn.disabled = false;
+                }
+            }
+
+            function connectChat() {
+                const myUsername = getUsername();
+
+                if (!myUsername || myUsername === 'unknown') {
+                    console.warn('Không lấy được username, bỏ qua kết nối chat.');
+                    return;
+                }
+
+                const socket = new SockJS('/ws-chat');
+                stompClient = Stomp.over(socket);
+                stompClient.debug = null;
+
+                stompClient.connect({}, function () {
+                    stompClient.subscribe('/topic/user/' + myUsername, function (msg) {
+                        const data = JSON.parse(msg.body || '{}');
+                        if (!data || !data.content) return;
+
+                        const sender = normalizeText(data.sender);
+                        const receiver = normalizeText(data.receiver);
+                        const me = normalizeText(myUsername);
+                        const content = (data.content || '').trim();
+
+                        if (!content) return;
+
+                        if (sender !== me && receiver !== me) {
+                            return;
+                        }
+
+                        appendMessage(data.sender, content);
+
+                        if (!isChatOpen() && sender !== me) {
+                            increaseBadge();
+                        }
+
+                        if (isChatOpen() && sender === normalizeText(ROLE_ADMIN)) {
+                            markUserRead();
+                        }
+                    });
+                }, function (error) {
+                    console.error('WebSocket lỗi:', error);
+                });
+            }
+
+            document.addEventListener('DOMContentLoaded', async function () {
+                await loadChatHistory();
+                await loadUnreadCount();
+                connectChat();
+            });
+        </script>
+    </th:block>
+</footer>
+
+</body>
+</html>

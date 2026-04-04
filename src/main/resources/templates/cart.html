@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+
+<head th:replace="~{fragments/head :: head('Giỏ hàng | GreenSpace')}"></head>
+
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<style>
+    .cart-page {
+        padding: 22px 0 42px;
+    }
+
+    .cart-hero {
+        margin-bottom: 24px;
+    }
+
+    .cart-hero-card {
+        overflow: hidden;
+        border-radius: 34px;
+        padding: 34px;
+        background:
+            linear-gradient(135deg, rgba(36, 58, 42, 0.95), rgba(74, 112, 78, 0.88)),
+            url('https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=1400&q=80') center/cover;
+        box-shadow: var(--shadow-lg);
+        color: #fff;
+    }
+
+    .cart-hero-grid {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 24px;
+        align-items: end;
+    }
+
+    .cart-hero-tag {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 16px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.14);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        margin-bottom: 18px;
+    }
+
+    .cart-hero-title {
+        margin: 0 0 14px;
+        font-size: clamp(34px, 5vw, 56px);
+        line-height: 1.04;
+        font-weight: 700;
+        color: #fff;
+        font-family: 'Cormorant Garamond', serif;
+    }
+
+    .cart-hero-desc {
+        margin: 0;
+        max-width: 680px;
+        color: rgba(255,255,255,0.84);
+        font-size: 15px;
+        line-height: 1.85;
+    }
+
+    .cart-hero-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
+
+    .cart-hero-stat {
+        background: rgba(255,255,255,0.12);
+        border-radius: 22px;
+        padding: 18px 16px;
+        text-align: center;
+        backdrop-filter: blur(10px);
+    }
+
+    .cart-hero-stat strong {
+        display: block;
+        font-size: 24px;
+        font-weight: 800;
+        margin-bottom: 5px;
+        color: #fff;
+    }
+
+    .cart-hero-stat span {
+        display: block;
+        color: rgba(255,255,255,0.78);
+        font-size: 13px;
+    }
+
+    .cart-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.58fr) minmax(360px, 0.92fr);
+        gap: 24px;
+        align-items: start;
+    }
+
+    .cart-main-card,
+    .cart-summary-card {
+        overflow: hidden;
+    }
+
+    .cart-card-body {
+        padding: 24px;
+    }
+
+    .cart-section-label {
+        display: inline-block;
+        margin-bottom: 10px;
+        font-size: 12px;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 800;
+    }
+
+    .cart-section-title {
+        margin: 0 0 18px;
+        font-size: 30px;
+        font-weight: 700;
+    }
+
+    .cart-table-wrap {
+        overflow-x: auto;
+    }
+
+    .cart-table {
+        width: 100%;
+        min-width: 860px;
+        border-collapse: collapse;
+    }
+
+    .cart-table th,
+    .cart-table td {
+        padding: 18px 12px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: middle;
+    }
+
+    .cart-table th {
+        background: rgba(138, 160, 107, 0.08);
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .cart-plant-info {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        min-width: 280px;
+    }
+
+    .cart-plant-info img {
+        width: 96px;
+        height: 96px;
+        object-fit: cover;
+        border-radius: 18px;
+        background: #fff;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .cart-plant-name {
+        font-weight: 800;
+        font-size: 16px;
+        line-height: 1.4;
+        margin-bottom: 5px;
+        color: var(--heading);
+    }
+
+    .cart-muted {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .cart-price-text {
+        font-weight: 700;
+        color: var(--primary);
+        white-space: nowrap;
+    }
+
+    .cart-qty-box {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.85);
+        border: 1px solid var(--line);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+    }
+
+    .cart-qty-box form {
+        display: inline;
+        margin: 0;
+    }
+
+    .cart-qty-btn {
+        width: 36px;
+        height: 36px;
+        border: 1px solid rgba(38, 75, 53, 0.10);
+        border-radius: 999px;
+        background: #fff;
+        cursor: pointer;
+        font-weight: 800;
+        font-size: 17px;
+        color: var(--text);
+        transition: 0.2s ease;
+    }
+
+    .cart-qty-btn:hover {
+        background: rgba(138, 160, 107, 0.08);
+    }
+
+    .cart-qty-input {
+        width: 78px;
+        height: 40px;
+        border: 1px solid rgba(38, 75, 53, 0.12);
+        border-radius: 12px;
+        text-align: center;
+        font-weight: 700;
+        font-size: 15px;
+        outline: none;
+        background: #fff;
+    }
+
+    .cart-remove-btn {
+        background: #fff;
+        color: #b93f34;
+        border: 1px solid rgba(185, 63, 52, 0.15);
+        padding: 11px 16px;
+        border-radius: 999px;
+        cursor: pointer;
+        font-weight: 700;
+        transition: 0.2s ease;
+    }
+
+    .cart-remove-btn:hover {
+        background: rgba(185, 63, 52, 0.06);
+    }
+
+    .cart-summary-card {
+        position: sticky;
+        top: 96px;
+    }
+
+    .cart-summary-head {
+        margin-bottom: 20px;
+    }
+
+    .cart-summary-head h2 {
+        margin: 0 0 8px;
+        font-size: 32px;
+        font-weight: 700;
+    }
+
+    .cart-summary-head p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.7;
+        font-size: 14px;
+    }
+
+    .cart-voucher-form {
+        display: flex;
+        gap: 10px;
+        margin: 18px 0 22px;
+    }
+
+    .cart-voucher-form input {
+        flex: 1;
+        height: 48px;
+        padding: 0 14px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        outline: none;
+        font-size: 14px;
+        background: rgba(255,255,255,0.96);
+    }
+
+    .cart-voucher-form button {
+        border: none;
+        cursor: pointer;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--primary) 0%, #315e43 100%);
+        color: #fff;
+        padding: 0 18px;
+        border-radius: 16px;
+        white-space: nowrap;
+    }
+
+    .cart-summary-panel {
+        padding: 18px;
+        border-radius: 22px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(250,249,244,0.92));
+        border: 1px solid var(--line);
+    }
+
+    .cart-summary-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+        font-size: 15px;
+        color: #374151;
+    }
+
+    .cart-summary-row strong {
+        color: var(--text);
+    }
+
+    .cart-summary-row.discount {
+        color: #b93f34;
+        font-weight: 700;
+    }
+
+    .cart-summary-row.total {
+        font-size: 24px;
+        font-weight: 800;
+        color: #166534;
+        border-top: 1px solid var(--line-strong);
+        padding-top: 16px;
+        margin-top: 16px;
+        margin-bottom: 0;
+    }
+
+    .cart-sub-card {
+        margin-top: 18px;
+        padding: 18px;
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        background: rgba(255,255,255,0.72);
+    }
+
+    .cart-sub-card-title {
+        font-size: 18px;
+        font-weight: 800;
+        margin: 0 0 14px;
+        color: var(--heading);
+    }
+
+    .cart-shipping-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .cart-field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .cart-field.full {
+        grid-column: 1 / -1;
+    }
+
+    .cart-field label {
+        font-size: 13px;
+        font-weight: 700;
+        color: #374151;
+    }
+
+    .cart-field input,
+    .cart-field textarea {
+        width: 100%;
+        padding: 13px 14px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        outline: none;
+        font-size: 14px;
+        background: rgba(255,255,255,0.96);
+    }
+
+    .cart-field textarea {
+        min-height: 96px;
+        resize: vertical;
+    }
+
+    .cart-payment-list {
+        display: grid;
+        gap: 12px;
+    }
+
+    .cart-payment-option {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 14px;
+        border-radius: 18px;
+        background: #fff;
+        border: 1px solid var(--line);
+    }
+
+    .cart-payment-option input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    margin: 3px 0 0 0;
+    flex: 0 0 18px;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    accent-color: var(--primary);
+}
+
+    .cart-payment-option label {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text);
+        line-height: 1.6;
+        cursor: pointer;
+    }
+
+    .cart-payment-note {
+        display: block;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--muted);
+        margin-top: 3px;
+    }
+
+    .cart-checkout-btn {
+        width: 100%;
+        margin-top: 18px;
+        padding: 15px 18px;
+        border: none;
+        border-radius: 999px;
+        background: linear-gradient(135deg, var(--accent) 0%, #9ab17b 100%);
+        color: #fff;
+        font-size: 16px;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 12px 24px rgba(138, 160, 107, 0.22);
+        transition: 0.25s ease;
+    }
+
+    .cart-checkout-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 16px 28px rgba(138, 160, 107, 0.26);
+    }
+
+    .cart-empty-box {
+        background: rgba(255,255,255,0.84);
+        border-radius: 30px;
+        padding: 54px 28px;
+        text-align: center;
+        box-shadow: var(--shadow-md);
+    }
+
+    .cart-empty-box h2 {
+        margin-bottom: 10px;
+        font-size: 34px;
+    }
+
+    .cart-empty-box p {
+        margin-bottom: 18px;
+        color: var(--muted);
+    }
+
+    .toast-container {
+        position: fixed;
+        top: 92px;
+        right: 18px;
+        z-index: 2000;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: min(420px, calc(100vw - 24px));
+    }
+
+    .toast {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.97);
+        border: 1px solid rgba(255, 255, 255, 0.82);
+        box-shadow: var(--shadow-lg);
+        backdrop-filter: blur(12px);
+    }
+
+    .toast-icon {
+        flex: 0 0 38px;
+        width: 38px;
+        height: 38px;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+    .toast-content {
+        flex: 1;
+    }
+
+    .toast-title {
+        font-size: 14px;
+        font-weight: 800;
+        margin-bottom: 2px;
+    }
+
+    .toast-message {
+        font-size: 14px;
+        color: #374151;
+        line-height: 1.5;
+    }
+
+    .toast-close {
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        color: #6b7280;
+        font-size: 18px;
+        line-height: 1;
+    }
+
+    .toast-success {
+        border-left: 5px solid #6f9a55;
+    }
+
+    .toast-success .toast-icon {
+        background: rgba(111, 154, 85, 0.12);
+        color: #305537;
+    }
+
+    .toast-error {
+        border-left: 5px solid #c75146;
+    }
+
+    .toast-error .toast-icon {
+        background: rgba(199, 81, 70, 0.12);
+        color: #8f2f27;
+    }
+
+    .toast-warning {
+        border-left: 5px solid #d97706;
+    }
+
+    .toast-warning .toast-icon {
+        background: rgba(245, 158, 11, 0.14);
+        color: #92400e;
+    }
+
+    .toast-hide {
+        opacity: 0;
+        transform: translateY(-10px);
+        transition: all 0.25s ease;
+    }
+
+    .cart-loading {
+        opacity: 0.65;
+        pointer-events: none;
+        transition: opacity 0.18s ease;
+    }
+
+    @media (max-width: 1120px) {
+        .cart-hero-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .cart-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .cart-summary-card {
+            position: static;
+        }
+    }
+
+    @media (max-width: 900px) {
+        .cart-shipping-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .cart-page {
+            padding: 16px 0 30px;
+        }
+
+        .cart-hero-card {
+            padding: 24px 18px;
+            border-radius: 26px;
+        }
+
+        .cart-hero-stats {
+            grid-template-columns: 1fr;
+        }
+
+        .cart-card-body {
+            padding: 18px;
+        }
+
+        .cart-voucher-form {
+            flex-direction: column;
+        }
+
+        .toast-container {
+            top: 82px;
+            right: 10px;
+            left: 10px;
+            width: auto;
+        }
+    }
+</style>
+
+<div class="toast-container" id="toastContainer">
+    <div th:if="${successMessage}" class="toast toast-success auto-toast">
+        <div class="toast-icon">✓</div>
+        <div class="toast-content">
+            <div class="toast-title">Thành công</div>
+            <div class="toast-message" th:text="${successMessage}"></div>
+        </div>
+        <button type="button" class="toast-close" onclick="closeToast(this)">×</button>
+    </div>
+
+    <div th:if="${errorMessage}" class="toast toast-error auto-toast">
+        <div class="toast-icon">!</div>
+        <div class="toast-content">
+            <div class="toast-title">Có lỗi xảy ra</div>
+            <div class="toast-message" th:text="${errorMessage}"></div>
+        </div>
+        <button type="button" class="toast-close" onclick="closeToast(this)">×</button>
+    </div>
+
+    <div th:if="${voucherMessage}" class="toast toast-success auto-toast">
+        <div class="toast-icon">✓</div>
+        <div class="toast-content">
+            <div class="toast-title">Voucher</div>
+            <div class="toast-message" th:text="${voucherMessage}"></div>
+        </div>
+        <button type="button" class="toast-close" onclick="closeToast(this)">×</button>
+    </div>
+
+    <div th:if="${voucherError}" class="toast toast-warning auto-toast">
+        <div class="toast-icon">!</div>
+        <div class="toast-content">
+            <div class="toast-title">Voucher không hợp lệ</div>
+            <div class="toast-message" th:text="${voucherError}"></div>
+        </div>
+        <button type="button" class="toast-close" onclick="closeToast(this)">×</button>
+    </div>
+</div>
+
+<div class="cart-page" id="cartPageShell">
+    <main class="container">
+        <section class="cart-hero">
+            <div class="cart-hero-card">
+                <div class="cart-hero-grid">
+                    <div>
+                        <div class="cart-hero-tag">GIỎ HÀNG CỦA BẠN</div>
+                        <h1 class="cart-hero-title">Sẵn sàng hoàn tất đơn hàng cây cảnh yêu thích</h1>
+                        <p class="cart-hero-desc">
+                            Kiểm tra lại sản phẩm, cập nhật thông tin giao hàng và chọn phương thức thanh toán phù hợp.
+                        </p>
+                    </div>
+
+                    <div class="cart-hero-stats">
+                        <div class="cart-hero-stat">
+                            <strong th:text="${#lists.isEmpty(cartItems) ? 0 : #lists.size(cartItems)}">0</strong>
+                            <span>Mục trong giỏ</span>
+                        </div>
+                        <div class="cart-hero-stat">
+                            <strong>Fast</strong>
+                            <span>Đặt hàng đơn giản</span>
+                        </div>
+                        <div class="cart-hero-stat">
+                            <strong>Safe</strong>
+                            <span>Thanh toán linh hoạt</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div th:if="${#lists.isEmpty(cartItems)}" class="cart-empty-box">
+            <h2>Giỏ hàng của bạn đang trống</h2>
+            <p>Hãy quay lại trang chủ để chọn thêm sản phẩm.</p>
+            <a th:href="@{/}" class="btn btn-dark">Khám phá sản phẩm</a>
+        </div>
+
+        <div th:if="${!#lists.isEmpty(cartItems)}" class="cart-layout">
+            <div class="card cart-main-card">
+                <div class="cart-card-body">
+                    <span class="cart-section-label">Danh sách sản phẩm</span>
+                    <h2 class="cart-section-title">Sản phẩm trong giỏ hàng</h2>
+
+                    <div class="cart-table-wrap">
+                        <table class="cart-table">
+                            <thead>
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th>Giá</th>
+                                <th>Số lượng</th>
+                                <th>Tạm tính</th>
+                                <th>Hành động</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="item : ${cartItems}">
+                                <td>
+                                    <div class="cart-plant-info">
+                                        <img th:src="${item.plant.imageUrl}" alt="Ảnh cây">
+                                        <div>
+                                            <div class="cart-plant-name" th:text="${item.plant.name}"></div>
+                                            <div class="cart-muted" th:text="'Còn lại: ' + ${item.plant.stock} + ' sản phẩm'"></div>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <span class="cart-price-text">
+                                        <span th:text="${#numbers.formatDecimal(item.plant.price, 0, 'COMMA', 0, 'POINT')}"></span> VND
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <div class="cart-qty-box">
+                                        <form th:action="@{/cart/decrease}" method="post" class="cart-ajax-form">
+                                            <input type="hidden" name="cartItemId" th:value="${item.id}">
+                                            <button class="cart-qty-btn" type="submit">-</button>
+                                        </form>
+
+                                        <form th:action="@{/cart/update}" method="post" class="cart-ajax-form qty-update-form">
+                                            <input type="hidden" name="cartItemId" th:value="${item.id}">
+                                            <input class="cart-qty-input"
+                                                   type="number"
+                                                   name="quantity"
+                                                   min="1"
+                                                   th:attr="max=${item.plant.stock}"
+                                                   th:value="${item.quantity}">
+                                        </form>
+
+                                        <form th:action="@{/cart/increase}" method="post" class="cart-ajax-form">
+                                            <input type="hidden" name="cartItemId" th:value="${item.id}">
+                                            <button class="cart-qty-btn" type="submit">+</button>
+                                        </form>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <span class="cart-price-text">
+                                        <span th:text="${#numbers.formatDecimal(item.plant.price * item.quantity, 0, 'COMMA', 0, 'POINT')}"></span> VND
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <form th:action="@{/cart/remove}" method="post" class="cart-ajax-form">
+                                        <input type="hidden" name="cartItemId" th:value="${item.id}">
+                                        <button type="submit" class="cart-remove-btn">Xóa</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card cart-summary-card">
+                <div class="cart-card-body">
+                    <div class="cart-summary-head">
+                        <h2>Tóm tắt đơn hàng</h2>
+                        <p>Kiểm tra tổng tiền, áp mã giảm giá và điền thông tin nhận hàng trước khi đặt.</p>
+                    </div>
+
+                    <form th:action="@{/cart}" method="get" class="cart-voucher-form">
+                        <input type="text" name="voucher" placeholder="Nhập mã voucher" th:value="${appliedVoucherCode}">
+                        <button type="submit">Áp mã</button>
+                    </form>
+
+                    <div class="cart-summary-panel">
+                        <div class="cart-summary-row">
+                            <span>Tạm tính</span>
+                            <strong>
+                                <span th:text="${#numbers.formatDecimal(subtotal, 0, 'COMMA', 0, 'POINT')}"></span> VND
+                            </strong>
+                        </div>
+
+                        <div class="cart-summary-row">
+                            <span>Phí vận chuyển</span>
+                            <strong>
+                                <span th:text="${#numbers.formatDecimal(shippingFee, 0, 'COMMA', 0, 'POINT')}"></span> VND
+                            </strong>
+                        </div>
+
+                        <div class="cart-summary-row discount">
+                            <span>Giảm giá</span>
+                            <strong>
+                                - <span th:text="${#numbers.formatDecimal(discountAmount, 0, 'COMMA', 0, 'POINT')}"></span> VND
+                            </strong>
+                        </div>
+
+                        <div class="cart-summary-row total">
+                            <span>Thành tiền</span>
+                            <span>
+                                <span th:text="${#numbers.formatDecimal(finalTotal, 0, 'COMMA', 0, 'POINT')}"></span> VND
+                            </span>
+                        </div>
+                    </div>
+
+                    <form th:action="@{/order/checkout}" method="post" id="checkoutForm">
+                        <input type="hidden" name="voucherCode" th:value="${appliedVoucherCode}">
+
+                        <div class="cart-sub-card">
+                            <h3 class="cart-sub-card-title">Thông tin giao hàng</h3>
+
+                            <div class="cart-shipping-grid">
+                                <div class="cart-field">
+                                    <label for="receiverName">Họ tên người nhận</label>
+                                    <input id="receiverName" type="text" name="receiverName" required>
+                                </div>
+
+                                <div class="cart-field">
+                                    <label for="phone">Số điện thoại</label>
+                                    <input id="phone" type="text" name="phone" required>
+                                </div>
+
+                                <div class="cart-field full">
+                                    <label for="address">Địa chỉ giao hàng</label>
+                                    <textarea id="address" name="address" required></textarea>
+                                </div>
+
+                                <div class="cart-field full">
+                                    <label for="note">Ghi chú cho đơn hàng</label>
+                                    <textarea id="note" name="note"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="cart-sub-card">
+                            <h3 class="cart-sub-card-title">Phương thức thanh toán</h3>
+
+                            <div class="cart-payment-list">
+                                <div class="cart-payment-option">
+                                    <input type="radio" id="cod" name="paymentMethod" value="COD" checked>
+                                    <label for="cod">
+                                        Thanh toán khi nhận hàng (COD)
+                                        <span class="cart-payment-note">Thanh toán khi nhận hàng.</span>
+                                    </label>
+                                </div>
+
+                                <div class="cart-payment-option">
+                                    <input type="radio" id="bankQr" name="paymentMethod" value="BANK_QR">
+                                    <label for="bankQr">
+                                        Chuyển khoản QR ngân hàng
+                                        <span class="cart-payment-note">Thanh toán nhanh bằng chuyển khoản.</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="cart-checkout-btn">Đặt hàng ngay</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script>
+    function closeToast(button) {
+        const toast = button.closest('.toast');
+        if (!toast) return;
+        toast.classList.add('toast-hide');
+        setTimeout(() => toast.remove(), 250);
+    }
+
+    function showClientToast(type, title, message) {
+        const toastContainer = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = 'toast auto-toast ' + type;
+
+        const icon = document.createElement('div');
+        icon.className = 'toast-icon';
+        icon.textContent = type === 'toast-success' ? '✓' : '!';
+
+        const content = document.createElement('div');
+        content.className = 'toast-content';
+
+        const titleEl = document.createElement('div');
+        titleEl.className = 'toast-title';
+        titleEl.textContent = title;
+
+        const messageEl = document.createElement('div');
+        messageEl.className = 'toast-message';
+        messageEl.textContent = message;
+
+        const closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.className = 'toast-close';
+        closeBtn.textContent = '×';
+        closeBtn.onclick = function () { closeToast(closeBtn); };
+
+        content.appendChild(titleEl);
+        content.appendChild(messageEl);
+        toast.appendChild(icon);
+        toast.appendChild(content);
+        toast.appendChild(closeBtn);
+        toastContainer.appendChild(toast);
+
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.classList.add('toast-hide');
+                setTimeout(() => {
+                    if (toast.parentNode) toast.remove();
+                }, 250);
+            }
+        }, 3800);
+    }
+
+    function autoHideToasts() {
+        const toasts = document.querySelectorAll('.auto-toast');
+        toasts.forEach((toast, index) => {
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.classList.add('toast-hide');
+                    setTimeout(() => {
+                        if (toast.parentNode) toast.remove();
+                    }, 250);
+                }
+            }, 3800 + index * 250);
+        });
+    }
+
+    function bindCheckoutValidation() {
+        const checkoutForm = document.getElementById('checkoutForm');
+        const receiverNameInput = document.getElementById('receiverName');
+        const phoneInput = document.getElementById('phone');
+        const addressInput = document.getElementById('address');
+
+        if (!checkoutForm || checkoutForm.dataset.bound === 'true') return;
+        checkoutForm.dataset.bound = 'true';
+
+        checkoutForm.addEventListener('submit', function (e) {
+            const receiverName = receiverNameInput.value.trim();
+            const phone = phoneInput.value.trim();
+            const address = addressInput.value.trim();
+            const phoneRegex = /^(0|\+84)[0-9]{9,10}$/;
+
+            if (receiverName.length < 2) {
+                e.preventDefault();
+                showClientToast('toast-error', 'Thông tin chưa hợp lệ', 'Họ tên người nhận quá ngắn.');
+                receiverNameInput.focus();
+                return;
+            }
+
+            if (!phoneRegex.test(phone)) {
+                e.preventDefault();
+                showClientToast('toast-error', 'Số điện thoại không hợp lệ', 'Vui lòng nhập đúng số điện thoại.');
+                phoneInput.focus();
+                return;
+            }
+
+            if (address.length < 10) {
+                e.preventDefault();
+                showClientToast('toast-error', 'Địa chỉ chưa đầy đủ', 'Vui lòng nhập địa chỉ rõ hơn.');
+                addressInput.focus();
+            }
+        });
+    }
+
+    async function handleCartAjaxSubmit(form) {
+        const pageShell = document.getElementById('cartPageShell');
+        pageShell.classList.add('cart-loading');
+
+        try {
+            const response = await fetch(form.action, {
+                method: form.method || 'post',
+                body: new FormData(form),
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
+                redirect: 'follow'
+            });
+
+            if (!response.ok) {
+                throw new Error('Request failed: ' + response.status);
+            }
+
+            const html = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+
+            const newPageShell = doc.getElementById('cartPageShell');
+            const newToastContainer = doc.getElementById('toastContainer');
+
+            if (!newPageShell) {
+                window.location.href = '/cart';
+                return;
+            }
+
+            pageShell.innerHTML = newPageShell.innerHTML;
+
+            const currentToastContainer = document.getElementById('toastContainer');
+            if (currentToastContainer && newToastContainer) {
+                currentToastContainer.innerHTML = newToastContainer.innerHTML;
+            } else if (currentToastContainer) {
+                currentToastContainer.innerHTML = '';
+            }
+
+            bindCartAjaxForms();
+            bindQtyInputs();
+            bindCheckoutValidation();
+            autoHideToasts();
+        } catch (error) {
+            console.error(error);
+            showClientToast('toast-error', 'Có lỗi xảy ra', 'Không thể cập nhật giỏ hàng lúc này. Vui lòng thử lại.');
+        } finally {
+            document.getElementById('cartPageShell').classList.remove('cart-loading');
+        }
+    }
+
+    function bindCartAjaxForms() {
+        const forms = document.querySelectorAll('.cart-ajax-form');
+        forms.forEach((form) => {
+            if (form.dataset.bound === 'true') return;
+            form.dataset.bound = 'true';
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                handleCartAjaxSubmit(form);
+            });
+        });
+    }
+
+    function bindQtyInputs() {
+        const forms = document.querySelectorAll('.qty-update-form');
+
+        forms.forEach((form) => {
+            const input = form.querySelector('input[name="quantity"]');
+            if (!input || input.dataset.bound === 'true') return;
+
+            input.dataset.bound = 'true';
+
+            input.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleCartAjaxSubmit(form);
+                }
+            });
+
+            input.addEventListener('blur', function () {
+                handleCartAjaxSubmit(form);
+            });
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        autoHideToasts();
+        bindCheckoutValidation();
+        bindCartAjaxForms();
+        bindQtyInputs();
+    });
+</script>
+
+</body>
+</html>

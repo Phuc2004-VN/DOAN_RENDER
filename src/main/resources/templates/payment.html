@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+
+<head th:replace="~{fragments/head :: head('Thanh toán QR ngân hàng | GreenSpace')}"></head>
+
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<style>
+    .payment-page {
+        padding: 24px 0 44px;
+    }
+
+    .payment-hero {
+        margin-bottom: 24px;
+    }
+
+    .payment-hero-card {
+        overflow: hidden;
+        border-radius: 34px;
+        padding: 34px;
+        background:
+            linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(22, 101, 52, 0.88)),
+            url('https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=1400&q=80') center/cover;
+        color: #fff;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .payment-hero-grid {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 24px;
+        align-items: end;
+    }
+
+    .payment-hero-tag {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 16px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.14);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        margin-bottom: 18px;
+    }
+
+    .payment-hero-title {
+        margin: 0 0 14px;
+        font-size: clamp(34px, 5vw, 56px);
+        line-height: 1.04;
+        font-weight: 700;
+        color: #fff;
+        font-family: 'Cormorant Garamond', serif;
+    }
+
+    .payment-hero-desc {
+        margin: 0;
+        max-width: 700px;
+        color: rgba(255,255,255,0.84);
+        font-size: 15px;
+        line-height: 1.85;
+    }
+
+    .payment-hero-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
+
+    .payment-hero-stat {
+        background: rgba(255,255,255,0.12);
+        border-radius: 22px;
+        padding: 18px 16px;
+        text-align: center;
+        backdrop-filter: blur(10px);
+    }
+
+    .payment-hero-stat strong {
+        display: block;
+        font-size: 24px;
+        font-weight: 800;
+        margin-bottom: 5px;
+        color: #fff;
+    }
+
+    .payment-hero-stat span {
+        display: block;
+        color: rgba(255,255,255,0.78);
+        font-size: 13px;
+    }
+
+    .payment-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(360px, 0.95fr);
+        gap: 24px;
+        align-items: start;
+    }
+
+    .payment-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .payment-section-label {
+        display: inline-block;
+        margin-bottom: 10px;
+        font-size: 12px;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 800;
+    }
+
+    .payment-card-body {
+        padding: 24px;
+    }
+
+    .payment-card-title {
+        margin: 0 0 8px;
+        font-size: 30px;
+        font-weight: 700;
+    }
+
+    .payment-card-desc {
+        color: var(--muted);
+        margin: 0 0 20px;
+        line-height: 1.75;
+        font-size: 14px;
+    }
+
+    .payment-soft-box {
+        padding: 18px;
+        border-radius: 24px;
+        background: linear-gradient(180deg, rgba(248,250,252,0.96), rgba(255,255,255,0.88));
+        border: 1px solid var(--line);
+        box-shadow: none;
+    }
+
+    .payment-qr-box {
+        text-align: center;
+    }
+
+    .payment-qr-image {
+        width: 100%;
+        max-width: 360px;
+        border-radius: 22px;
+        background: #fff;
+        padding: 10px;
+        margin: 0 auto;
+        box-shadow: 0 16px 30px rgba(15,23,42,0.08);
+    }
+
+    .payment-qr-note {
+        margin-top: 18px;
+        padding: 14px 16px;
+        border-radius: 18px;
+        background: rgba(245, 158, 11, 0.12);
+        color: #92400e;
+        font-size: 14px;
+        line-height: 1.7;
+        text-align: left;
+    }
+
+    .payment-info-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .payment-info-item {
+        padding-bottom: 14px;
+        border-bottom: 1px solid rgba(38, 75, 53, 0.08);
+    }
+
+    .payment-info-item:last-child {
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    .payment-info-label {
+        font-size: 13px;
+        color: var(--muted);
+        margin-bottom: 5px;
+        font-weight: 700;
+    }
+
+    .payment-info-value {
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1.75;
+        color: var(--text);
+        word-break: break-word;
+    }
+
+    .payment-alert {
+        margin-bottom: 14px;
+        padding: 14px 16px;
+        border-radius: 18px;
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.7;
+    }
+
+    .payment-alert-success {
+        background: rgba(34, 197, 94, 0.12);
+        color: #166534;
+        border: 1px solid rgba(34, 197, 94, 0.16);
+    }
+
+    .payment-alert-error {
+        background: rgba(239, 68, 68, 0.12);
+        color: #991b1b;
+        border: 1px solid rgba(239, 68, 68, 0.16);
+    }
+
+    .payment-countdown-box {
+        margin-bottom: 18px;
+        padding: 18px;
+        border-radius: 22px;
+        background: rgba(37, 99, 235, 0.08);
+        border: 1px solid rgba(37, 99, 235, 0.10);
+    }
+
+    .payment-countdown-label {
+        font-size: 13px;
+        color: #1d4ed8;
+        margin-bottom: 8px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .payment-countdown-time {
+        font-size: 42px;
+        font-weight: 800;
+        color: #1e40af;
+        letter-spacing: 1px;
+        line-height: 1.1;
+    }
+
+    .payment-countdown-warning {
+        margin-top: 10px;
+        font-size: 14px;
+        color: #92400e;
+        display: none;
+        font-weight: 700;
+    }
+
+    .payment-copy-row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .payment-copy-chip {
+        background: linear-gradient(135deg, #0f172a, #1f2937);
+        color: #fff;
+        padding: 11px 14px;
+        border-radius: 14px;
+        display: inline-block;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 17px;
+        font-weight: 700;
+        word-break: break-word;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.10);
+    }
+
+    .payment-mini-btn {
+        padding: 9px 13px !important;
+        font-size: 13px !important;
+        min-height: unset !important;
+    }
+
+    .payment-confirm-btn {
+        width: 100%;
+        padding: 15px 18px !important;
+        font-size: 16px !important;
+        margin-top: 18px;
+    }
+
+    .payment-summary-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+        font-size: 15px;
+        color: #374151;
+    }
+
+    .payment-summary-row strong {
+        color: var(--text);
+    }
+
+    .payment-summary-row.total {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding-top: 16px;
+        margin-top: 16px;
+        border-top: 1px solid var(--line);
+        font-size: 24px;
+        font-weight: 800;
+        color: #166534;
+        margin-bottom: 0;
+    }
+
+    #copiedToast {
+        position: fixed;
+        right: 20px;
+        bottom: 20px;
+        background: #111827;
+        color: #fff;
+        padding: 12px 16px;
+        border-radius: 14px;
+        font-size: 14px;
+        font-weight: 700;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(10px);
+        transition: all 0.25s ease;
+        z-index: 9999;
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+    }
+
+    @media (max-width: 1120px) {
+        .payment-hero-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .payment-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .payment-page {
+            padding: 16px 0 30px;
+        }
+
+        .payment-hero-card {
+            padding: 24px 18px;
+            border-radius: 26px;
+        }
+
+        .payment-hero-stats {
+            grid-template-columns: 1fr;
+        }
+
+        .payment-card-body {
+            padding: 18px;
+        }
+
+        .payment-countdown-time {
+            font-size: 34px;
+        }
+    }
+</style>
+
+<div class="payment-page">
+    <main class="container">
+
+        <section class="payment-hero">
+            <div class="payment-hero-card">
+                <div class="payment-hero-grid">
+                    <div>
+                        <div class="payment-hero-tag">THANH TOÁN QR NGÂN HÀNG</div>
+                        <h1 class="payment-hero-title">Hoàn tất thanh toán đơn hàng của bạn</h1>
+                        <p class="payment-hero-desc">
+                            Quét mã QR để chuyển khoản đúng số tiền và đúng nội dung. Sau khi hoàn tất,
+                            bạn chỉ cần nhấn xác nhận để hệ thống ghi nhận yêu cầu kiểm tra thanh toán.
+                        </p>
+                    </div>
+
+                    <div class="payment-hero-stats">
+                        <div class="payment-hero-stat">
+                            <strong>QR</strong>
+                            <span>Quét và thanh toán</span>
+                        </div>
+                        <div class="payment-hero-stat">
+                            <strong>5m</strong>
+                            <span>Giữ đơn tạm thời</span>
+                        </div>
+                        <div class="payment-hero-stat">
+                            <strong>Safe</strong>
+                            <span>Nội dung CK rõ ràng</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="payment-layout">
+            <div class="payment-stack">
+
+                <section class="card">
+                    <div class="payment-card-body">
+                        <div class="payment-section-label">Quét mã thanh toán</div>
+                        <h2 class="payment-card-title">Mã QR thanh toán</h2>
+                        <p class="payment-card-desc">
+                            Dùng ứng dụng ngân hàng để quét mã và chuyển khoản nhanh hơn.
+                        </p>
+
+                        <div class="payment-soft-box payment-qr-box">
+                            <img th:src="${qrUrl}" alt="QR thanh toán" class="payment-qr-image">
+
+                            <div class="payment-qr-note">
+                                Quét mã bằng app ngân hàng để chuyển khoản đúng số tiền và đúng nội dung, tránh bị chậm xác nhận đơn hàng.
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <div class="payment-card-body">
+                        <div class="payment-section-label">Thông tin nhận hàng</div>
+                        <h2 class="payment-card-title">Thông tin giao hàng</h2>
+
+                        <div class="payment-soft-box">
+                            <div class="payment-info-list">
+                                <div class="payment-info-item">
+                                    <div class="payment-info-label">Người nhận</div>
+                                    <div class="payment-info-value" th:text="${order.receiverName} ?: '-'"></div>
+                                </div>
+
+                                <div class="payment-info-item">
+                                    <div class="payment-info-label">Số điện thoại</div>
+                                    <div class="payment-info-value" th:text="${order.phone} ?: '-'"></div>
+                                </div>
+
+                                <div class="payment-info-item">
+                                    <div class="payment-info-label">Địa chỉ giao hàng</div>
+                                    <div class="payment-info-value" th:text="${order.address} ?: '-'"></div>
+                                </div>
+
+                                <div class="payment-info-item">
+                                    <div class="payment-info-label">Ghi chú</div>
+                                    <div class="payment-info-value" th:text="${order.note} ?: 'Không có ghi chú'"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+
+            <div class="payment-stack">
+
+                <section class="card">
+                    <div class="payment-card-body">
+                        <div class="payment-section-label">Chuyển khoản</div>
+                        <h2 class="payment-card-title">Thông tin chuyển khoản</h2>
+                        <p class="payment-card-desc">
+                            Kiểm tra kỹ ngân hàng, số tài khoản và nội dung chuyển khoản trước khi xác nhận.
+                        </p>
+
+                        <div th:if="${order.paymentStatus != 'PAID' and order.status != 'CANCELLED'}" class="payment-countdown-box">
+                            <div class="payment-countdown-label">Thời gian giữ đơn</div>
+                            <div id="countdown" class="payment-countdown-time">05:00</div>
+                            <div id="timerWarning" class="payment-countdown-warning">
+                                Sắp hết thời gian thanh toán.
+                            </div>
+                        </div>
+
+                        <div th:if="${order.paymentStatus == 'PAID'}" class="payment-alert payment-alert-success">
+                            Đơn hàng này đã được xác nhận thanh toán.
+                        </div>
+
+                        <div id="expiredBox"
+                             th:style="${order.status == 'CANCELLED'} ? 'display:block;' : 'display:none;'"
+                             class="payment-alert payment-alert-error">
+                            Đơn hàng đã hết hạn hoặc đã bị hủy. Vui lòng đặt lại đơn mới.
+                        </div>
+
+                        <div class="payment-soft-box">
+                            <div class="payment-info-list">
+                                <div class="payment-info-item">
+                                    <div class="payment-info-label">Ngân hàng</div>
+                                    <div class="payment-info-value" th:text="${bankName}"></div>
+                                </div>
+
+                                <div class="payment-info-item">
+                                    <div class="payment-info-label">Số tài khoản</div>
+                                    <div class="payment-copy-row">
+                                        <span id="bankAccountNoText" class="payment-info-value" th:text="${bankAccountNo}"></span>
+                                        <button type="button"
+                                                onclick="copyText('bankAccountNoText', 'Đã copy số tài khoản')"
+                                                class="btn btn-dark payment-mini-btn">
+                                            Copy STK
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="payment-info-item">
+                                    <div class="payment-info-label">Chủ tài khoản</div>
+                                    <div class="payment-info-value" th:text="${bankAccountName}"></div>
+                                </div>
+
+                                <div class="payment-info-item">
+                                    <div class="payment-info-label">Nội dung chuyển khoản</div>
+                                    <div class="payment-copy-row">
+                                        <div id="transferContentText"
+                                             class="payment-copy-chip"
+                                             th:text="${transferContent}">
+                                        </div>
+                                        <button type="button"
+                                                onclick="copyText('transferContentText', 'Đã copy nội dung chuyển khoản')"
+                                                class="btn btn-dark payment-mini-btn">
+                                            Copy nội dung
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form th:action="@{/order/payment/mark-paid}" method="post" id="markPaidForm">
+                            <input type="hidden" name="orderId" th:value="${order.id}">
+                            <button type="submit"
+                                    id="markPaidBtn"
+                                    class="btn btn-green payment-confirm-btn"
+                                    th:disabled="${order.paymentStatus == 'PAID' or order.status == 'CANCELLED'}"
+                                    th:styleappend="${order.paymentStatus == 'PAID' or order.status == 'CANCELLED'} ? 'background:#d1d5db; color:#6b7280; cursor:not-allowed; box-shadow:none;' : ''">
+                                Tôi đã chuyển khoản
+                            </button>
+                        </form>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <div class="payment-card-body">
+                        <div class="payment-section-label">Đơn hàng</div>
+                        <h2 class="payment-card-title">Thông tin đơn hàng</h2>
+
+                        <div class="payment-soft-box">
+                            <div class="payment-summary-row">
+                                <span>Mã đơn hàng</span>
+                                <strong th:text="'#' + ${order.id}"></strong>
+                            </div>
+
+                            <div class="payment-summary-row total">
+                                <span>Số tiền cần thanh toán</span>
+                                <span>
+                                    <span th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')}"></span> VND
+                                </span>
+                            </div>
+
+                            <div class="payment-summary-row" style="margin-top:16px;">
+                                <span>Trạng thái thanh toán</span>
+                                <strong th:text="${order.paymentStatus}"></strong>
+                            </div>
+
+                            <div class="payment-summary-row" style="margin-top:14px; margin-bottom:0;">
+                                <span>Phương thức thanh toán</span>
+                                <strong th:text="${order.paymentMethod}"></strong>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<div id="copiedToast">Đã copy</div>
+
+<script th:inline="javascript">
+    const orderStatus = /*[[${order.status}]]*/ 'PENDING_PAYMENT';
+    const paymentStatus = /*[[${order.paymentStatus}]]*/ 'WAITING_TRANSFER';
+
+    const countdownEl = document.getElementById('countdown');
+    const timerWarningEl = document.getElementById('timerWarning');
+    const expiredBoxEl = document.getElementById('expiredBox');
+    const markPaidBtn = document.getElementById('markPaidBtn');
+    const copiedToast = document.getElementById('copiedToast');
+
+    function showToast(message) {
+        copiedToast.textContent = message;
+        copiedToast.style.opacity = '1';
+        copiedToast.style.transform = 'translateY(0)';
+
+        setTimeout(() => {
+            copiedToast.style.opacity = '0';
+            copiedToast.style.transform = 'translateY(10px)';
+        }, 1800);
+    }
+
+    function copyText(elementId, message) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+
+        const text = el.innerText.trim();
+        navigator.clipboard.writeText(text)
+            .then(() => showToast(message))
+            .catch(() => alert('Không thể copy. Vui lòng copy thủ công.'));
+    }
+
+    const shouldRunCountdown = paymentStatus !== 'PAID' && orderStatus !== 'CANCELLED';
+
+    if (shouldRunCountdown && countdownEl) {
+        let totalSeconds = 5 * 60;
+
+        const tick = () => {
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+
+            countdownEl.textContent =
+                String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+
+            if (totalSeconds <= 60 && timerWarningEl) {
+                timerWarningEl.style.display = 'block';
+            }
+
+            if (totalSeconds <= 0) {
+                countdownEl.textContent = '00:00';
+
+                if (expiredBoxEl) {
+                    expiredBoxEl.style.display = 'block';
+                }
+
+                if (markPaidBtn) {
+                    markPaidBtn.disabled = true;
+                    markPaidBtn.style.background = '#d1d5db';
+                    markPaidBtn.style.color = '#6b7280';
+                    markPaidBtn.style.cursor = 'not-allowed';
+                    markPaidBtn.style.boxShadow = 'none';
+                }
+
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+
+                clearInterval(intervalId);
+                return;
+            }
+
+            totalSeconds--;
+        };
+
+        tick();
+        const intervalId = setInterval(tick, 1000);
+    }
+</script>
+
+</body>
+</html>

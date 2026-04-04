@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+
+<head th:replace="~{fragments/head :: head('Lịch sử đặt hàng | GreenSpace')}"></head>
+
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<style>
+    .history-page {
+        padding: 24px 0 44px;
+    }
+
+    .history-hero {
+        margin-bottom: 24px;
+    }
+
+    .history-hero-card {
+        overflow: hidden;
+        border-radius: 34px;
+        padding: 34px;
+        background:
+            linear-gradient(135deg, rgba(15,23,42,0.94), rgba(22,101,52,0.90)),
+            url('https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=1400&q=80') center/cover;
+        color: #fff;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .history-hero-grid {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 24px;
+        align-items: end;
+    }
+
+    .history-hero-tag {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 16px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.14);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        margin-bottom: 18px;
+    }
+
+    .history-hero-title {
+        margin: 0 0 14px;
+        font-size: clamp(34px, 5vw, 56px);
+        line-height: 1.04;
+        font-weight: 700;
+        color: #fff;
+        font-family: 'Cormorant Garamond', serif;
+    }
+
+    .history-hero-desc {
+        margin: 0;
+        max-width: 700px;
+        color: rgba(255,255,255,0.84);
+        font-size: 15px;
+        line-height: 1.85;
+    }
+
+    .history-hero-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
+
+    .history-hero-stat {
+        background: rgba(255,255,255,0.12);
+        border-radius: 22px;
+        padding: 18px 16px;
+        text-align: center;
+        backdrop-filter: blur(10px);
+    }
+
+    .history-hero-stat strong {
+        display: block;
+        font-size: 24px;
+        font-weight: 800;
+        margin-bottom: 5px;
+        color: #fff;
+    }
+
+    .history-hero-stat span {
+        display: block;
+        color: rgba(255,255,255,0.78);
+        font-size: 13px;
+    }
+
+    .history-card-body {
+        padding: 24px;
+    }
+
+    .history-section-label {
+        display: inline-block;
+        margin-bottom: 10px;
+        font-size: 12px;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 800;
+    }
+
+    .history-heading-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+    }
+
+    .history-table-shell {
+        overflow: hidden;
+        border-radius: 24px;
+        border: 1px solid var(--line);
+        background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(250,249,244,0.92));
+    }
+
+    .history-table-wrap {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .history-table {
+        width: 100%;
+        min-width: 1120px;
+        border-collapse: collapse;
+    }
+
+    .history-table th,
+    .history-table td {
+        padding: 18px 16px;
+        border-bottom: 1px solid rgba(38, 75, 53, 0.08);
+        text-align: left;
+        vertical-align: middle;
+    }
+
+    .history-table th {
+        background: rgba(138, 160, 107, 0.08);
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        white-space: nowrap;
+    }
+
+    .history-table tbody tr {
+        transition: background 0.2s ease;
+    }
+
+    .history-table tbody tr:hover {
+        background: rgba(138, 160, 107, 0.06);
+    }
+
+    .history-order-id {
+        font-weight: 800;
+        color: var(--heading);
+        white-space: nowrap;
+    }
+
+    .history-price {
+        font-weight: 800;
+        color: var(--primary);
+        white-space: nowrap;
+    }
+
+    .history-method {
+        font-weight: 700;
+        color: var(--text);
+        white-space: nowrap;
+    }
+
+    .history-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .history-actions .btn {
+        min-height: 40px;
+        padding: 0 14px;
+        font-size: 13px;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 32px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-pending-payment {
+        background: #ede9fe;
+        color: #6d28d9;
+    }
+
+    .status-processing {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .status-done {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-cancelled {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .status-waiting-transfer {
+        background: #ede9fe;
+        color: #6d28d9;
+    }
+
+    .status-paid {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-unpaid {
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    .history-empty-box {
+        background: rgba(255,255,255,0.84);
+        border-radius: 26px;
+        padding: 46px 24px;
+        text-align: center;
+        box-shadow: none;
+        border: 1px dashed var(--line-strong);
+    }
+
+    .history-empty-box h3 {
+        margin: 0 0 10px;
+        font-size: 30px;
+    }
+
+    .history-empty-box p {
+        margin: 0 0 18px;
+        color: var(--muted);
+    }
+
+    .history-pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 20px;
+    }
+
+    .history-pagination .btn {
+        min-width: 42px;
+        min-height: 42px;
+        padding: 0 14px;
+    }
+
+    .history-pagination .btn-current {
+        background: linear-gradient(135deg, #587f5d 0%, #2d5b3d 100%);
+        color: #fff;
+        box-shadow: 0 12px 24px rgba(45, 91, 61, 0.2);
+        pointer-events: none;
+    }
+
+    .toast-container {
+        position: fixed;
+        top: 92px;
+        right: 18px;
+        z-index: 2000;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: min(420px, calc(100vw - 24px));
+    }
+
+    .toast {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.97);
+        border: 1px solid rgba(255, 255, 255, 0.82);
+        box-shadow: var(--shadow-lg);
+        backdrop-filter: blur(12px);
+    }
+
+    .toast-icon {
+        flex: 0 0 38px;
+        width: 38px;
+        height: 38px;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+    .toast-content {
+        flex: 1;
+    }
+
+    .toast-title {
+        font-size: 14px;
+        font-weight: 800;
+        margin-bottom: 2px;
+    }
+
+    .toast-message {
+        font-size: 14px;
+        color: #374151;
+        line-height: 1.5;
+    }
+
+    .toast-close {
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        color: #6b7280;
+        font-size: 18px;
+        line-height: 1;
+    }
+
+    .toast-success {
+        border-left: 5px solid #6f9a55;
+    }
+
+    .toast-success .toast-icon {
+        background: rgba(111, 154, 85, 0.12);
+        color: #305537;
+    }
+
+    .toast-error {
+        border-left: 5px solid #c75146;
+    }
+
+    .toast-error .toast-icon {
+        background: rgba(199, 81, 70, 0.12);
+        color: #8f2f27;
+    }
+
+    .toast-hide {
+        opacity: 0;
+        transform: translateY(-10px);
+        transition: all 0.25s ease;
+    }
+
+    @media (max-width: 1120px) {
+        .history-hero-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .history-page {
+            padding: 16px 0 30px;
+        }
+
+        .history-hero-card {
+            padding: 24px 18px;
+            border-radius: 26px;
+        }
+
+        .history-hero-stats {
+            grid-template-columns: 1fr;
+        }
+
+        .history-card-body {
+            padding: 18px;
+        }
+
+        .toast-container {
+            top: 82px;
+            right: 10px;
+            left: 10px;
+            width: auto;
+        }
+    }
+</style>
+
+<div class="toast-container">
+    <div th:if="${successMessage}" class="toast toast-success auto-toast">
+        <div class="toast-icon">✓</div>
+        <div class="toast-content">
+            <div class="toast-title">Thành công</div>
+            <div class="toast-message" th:text="${successMessage}"></div>
+        </div>
+        <button type="button" class="toast-close" onclick="closeToast(this)">×</button>
+    </div>
+
+    <div th:if="${errorMessage}" class="toast toast-error auto-toast">
+        <div class="toast-icon">!</div>
+        <div class="toast-content">
+            <div class="toast-title">Có lỗi xảy ra</div>
+            <div class="toast-message" th:text="${errorMessage}"></div>
+        </div>
+        <button type="button" class="toast-close" onclick="closeToast(this)">×</button>
+    </div>
+</div>
+
+<div class="history-page">
+    <main class="container">
+
+        <section class="history-hero">
+            <div class="history-hero-card">
+                <div class="history-hero-grid">
+                    <div>
+                        <div class="history-hero-tag">ORDER HISTORY</div>
+                        <h1 class="history-hero-title">Theo dõi toàn bộ đơn hàng của bạn</h1>
+                        <p class="history-hero-desc">
+                            Xem nhanh trạng thái đơn, trạng thái thanh toán, hóa đơn và tiếp tục xử lý các đơn cần thanh toán QR ngân hàng.
+                        </p>
+                    </div>
+
+                    <div class="history-hero-stats">
+                        <div class="history-hero-stat">
+                            <strong th:text="${totalItems}">0</strong>
+                            <span>Tổng đơn hàng</span>
+                        </div>
+                        <div class="history-hero-stat">
+                            <strong>Track</strong>
+                            <span>Theo dõi dễ hơn</span>
+                        </div>
+                        <div class="history-hero-stat">
+                            <strong>Invoice</strong>
+                            <span>Xem hóa đơn nhanh</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="history-card-body">
+                <div class="history-heading-row">
+                    <div>
+                        <div class="history-section-label">Đơn hàng của bạn</div>
+                        <h2 class="section-title" style="margin-bottom:0;">Lịch sử đặt hàng</h2>
+                    </div>
+                </div>
+
+                <div th:if="${#lists.isEmpty(orders)}" class="history-empty-box">
+                    <h3>Chưa có đơn hàng nào</h3>
+                    <p>Bạn chưa có đơn hàng nào trong lịch sử mua sắm.</p>
+                    <a th:href="@{/}" class="btn btn-dark">Tiếp tục mua sắm</a>
+                </div>
+
+                <div th:if="${not #lists.isEmpty(orders)}" class="history-table-shell">
+                    <div class="history-table-wrap">
+                        <table class="history-table">
+                            <thead>
+                            <tr>
+                                <th>Mã đơn</th>
+                                <th>Ngày đặt</th>
+                                <th>Người nhận</th>
+                                <th>Tổng tiền</th>
+                                <th>Trạng thái đơn</th>
+                                <th>Thanh toán</th>
+                                <th>Phương thức</th>
+                                <th>Chức năng</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="order : ${orders}">
+                                <td class="history-order-id" th:text="'#' + ${order.id}"></td>
+
+                                <td th:text="${order.createdAt != null ? #temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm') : '-'}"></td>
+
+                                <td th:text="${order.receiverName} ?: '-'"></td>
+
+                                <td class="history-price">
+                                    <span th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')}"></span> VND
+                                </td>
+
+                                <td>
+                                    <span th:if="${order.status == 'PENDING'}" class="status-badge status-pending">
+                                        PENDING
+                                    </span>
+                                    <span th:if="${order.status == 'PENDING_PAYMENT'}" class="status-badge status-pending-payment">
+                                        PENDING_PAYMENT
+                                    </span>
+                                    <span th:if="${order.status == 'PROCESSING'}" class="status-badge status-processing">
+                                        PROCESSING
+                                    </span>
+                                    <span th:if="${order.status == 'DONE'}" class="status-badge status-done">
+                                        DONE
+                                    </span>
+                                    <span th:if="${order.status == 'CANCELLED'}" class="status-badge status-cancelled">
+                                        CANCELLED
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span th:if="${order.paymentStatus == 'WAITING_TRANSFER'}" class="status-badge status-waiting-transfer">
+                                        WAITING_TRANSFER
+                                    </span>
+                                    <span th:if="${order.paymentStatus == 'PAID'}" class="status-badge status-paid">
+                                        PAID
+                                    </span>
+                                    <span th:if="${order.paymentStatus == 'UNPAID'}" class="status-badge status-unpaid">
+                                        UNPAID
+                                    </span>
+                                </td>
+
+                                <td class="history-method" th:text="${order.paymentMethod}"></td>
+
+                                <td>
+                                    <div class="history-actions">
+                                        <a th:href="@{'/order/invoice/' + ${order.id}}" class="btn btn-blue">Xem hóa đơn</a>
+
+                                        <a th:if="${order.paymentMethod == 'BANK_QR' and order.paymentStatus != 'PAID' and order.status != 'CANCELLED'}"
+                                           th:href="@{'/order/payment/' + ${order.id}}"
+                                           class="btn btn-green">
+                                            Thanh toán
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="history-pagination" th:if="${totalPages > 0}">
+                    <a th:href="@{/order/history(page=${currentPage - 1})}"
+                       class="btn btn-outline"
+                       th:styleappend="${currentPage == 0} ? 'pointer-events:none; opacity:0.45;' : ''">←</a>
+
+                    <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                        <span th:if="${i == currentPage}" class="btn btn-current" th:text="${i + 1}"></span>
+                        <a th:if="${i != currentPage}"
+                           th:href="@{/order/history(page=${i})}"
+                           class="btn btn-outline"
+                           th:text="${i + 1}"></a>
+                    </th:block>
+
+                    <a th:href="@{/order/history(page=${currentPage + 1})}"
+                       class="btn btn-outline"
+                       th:styleappend="${currentPage >= totalPages - 1} ? 'pointer-events:none; opacity:0.45;' : ''">→</a>
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script>
+    function closeToast(button) {
+        const toast = button.closest('.toast');
+        if (!toast) return;
+        toast.classList.add('toast-hide');
+        setTimeout(() => toast.remove(), 250);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const toasts = document.querySelectorAll('.auto-toast');
+        toasts.forEach((toast, index) => {
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.classList.add('toast-hide');
+                    setTimeout(() => {
+                        if (toast.parentNode) toast.remove();
+                    }, 250);
+                }
+            }, 4200 + index * 250);
+        });
+    });
+</script>
+
+</body>
+</html>

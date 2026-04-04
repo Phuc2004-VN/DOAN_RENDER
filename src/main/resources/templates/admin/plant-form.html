@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+
+<head th:with="pageTitle=${plant.id == null ? 'Thêm cây | GreenSpace Admin' : 'Sửa cây | GreenSpace Admin'}"
+      th:replace="~{fragments/head :: head(${pageTitle})}">
+</head>
+
+<body>
+
+<style>
+    .plant-form-page {
+        padding: 24px 0 44px;
+    }
+
+    .plant-form-topbar {
+        margin-bottom: 24px;
+    }
+
+    .plant-form-topbar .topbar-wrap {
+        position: static;
+        border-radius: 28px;
+        overflow: hidden;
+    }
+
+    .plant-form-topbar .topbar {
+        min-height: 88px;
+    }
+
+    .plant-form-brand-title {
+        font-size: 34px;
+        font-weight: 700;
+        line-height: 1;
+        font-family: 'Cormorant Garamond', serif;
+        color: var(--heading);
+        margin: 0;
+    }
+
+    .plant-form-brand-desc {
+        font-size: 13px;
+        color: var(--muted);
+        font-weight: 500;
+        margin-top: 4px;
+    }
+
+    .plant-form-hero {
+        margin-bottom: 24px;
+    }
+
+    .plant-form-hero-card {
+        overflow: hidden;
+        border-radius: 34px;
+        padding: 34px;
+        background:
+            linear-gradient(135deg, rgba(15,23,42,0.96), rgba(22,101,52,0.92)),
+            url('https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=1400&q=80') center/cover;
+        color: #fff;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .plant-form-hero-grid {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 24px;
+        align-items: end;
+    }
+
+    .plant-form-chip {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 16px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.14);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        margin-bottom: 18px;
+    }
+
+    .plant-form-hero-title {
+        margin: 0 0 16px;
+        font-size: clamp(36px, 5vw, 54px);
+        line-height: 1.04;
+        color: #fff;
+        font-family: 'Cormorant Garamond', serif;
+    }
+
+    .plant-form-hero-desc {
+        margin: 0;
+        max-width: 760px;
+        font-size: 15px;
+        line-height: 1.85;
+        color: rgba(255,255,255,0.84);
+    }
+
+    .plant-form-hero-stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .plant-form-hero-stat {
+        background: rgba(255,255,255,0.12);
+        border-radius: 22px;
+        padding: 18px 16px;
+        text-align: center;
+        backdrop-filter: blur(10px);
+    }
+
+    .plant-form-hero-stat strong {
+        display: block;
+        font-size: 24px;
+        font-weight: 800;
+        margin-bottom: 6px;
+        color: #fff;
+    }
+
+    .plant-form-hero-stat span {
+        display: block;
+        font-size: 13px;
+        color: rgba(255,255,255,0.78);
+    }
+
+    .plant-form-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.18fr) minmax(320px, 0.82fr);
+        gap: 24px;
+        align-items: start;
+    }
+
+    .plant-form-card-head {
+        padding: 22px 24px 18px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(250,250,250,0.92);
+    }
+
+    .plant-form-label-top {
+        display: inline-block;
+        margin-bottom: 10px;
+        font-size: 12px;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 800;
+    }
+
+    .plant-form-card-desc {
+        margin-top: 8px;
+        color: var(--muted);
+        line-height: 1.7;
+        font-size: 14px;
+    }
+
+    .plant-form-card-body {
+        padding: 24px;
+    }
+
+    .plant-form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+    }
+
+    .plant-form-field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .plant-form-field.full {
+        grid-column: 1 / -1;
+    }
+
+    .plant-form-field label {
+        font-size: 14px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .plant-form-help {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.6;
+        margin-top: 2px;
+    }
+
+    .plant-form-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        margin-top: 24px;
+        flex-wrap: wrap;
+    }
+
+    .plant-form-side {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .preview-shell {
+        padding: 18px;
+        border-radius: 24px;
+        background: #f8fafc;
+        border: 1px solid var(--line);
+    }
+
+    .preview-card {
+        overflow: hidden;
+        border-radius: 24px;
+        background: #fff;
+        border: 1px solid var(--line);
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+    }
+
+    .preview-image-box {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        background: #f3f4f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border-bottom: 1px solid var(--line);
+    }
+
+    .preview-image-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .preview-empty {
+        color: #9ca3af;
+        font-size: 14px;
+        font-weight: 700;
+        text-align: center;
+        padding: 20px;
+    }
+
+    .preview-content {
+        padding: 18px;
+    }
+
+    .preview-name {
+        font-size: 20px;
+        font-weight: 800;
+        line-height: 1.3;
+        margin-bottom: 8px;
+        letter-spacing: -0.02em;
+        color: var(--heading);
+    }
+
+    .preview-category {
+        display: inline-block;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: #ecfdf5;
+        color: #166534;
+        font-size: 12px;
+        font-weight: 800;
+        margin-bottom: 14px;
+    }
+
+    .preview-price {
+        font-size: 24px;
+        font-weight: 800;
+        color: #166534;
+        letter-spacing: -0.03em;
+        margin-bottom: 10px;
+    }
+
+    .preview-desc {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.7;
+        min-height: 72px;
+    }
+
+    .meta-box {
+        padding: 18px;
+        border-radius: 24px;
+        background: #f8fafc;
+        border: 1px solid var(--line);
+    }
+
+    .meta-title {
+        font-size: 18px;
+        font-weight: 800;
+        margin-bottom: 14px;
+        color: var(--heading);
+    }
+
+    .meta-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--line);
+        font-size: 14px;
+    }
+
+    .meta-row:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .meta-row:first-of-type {
+        padding-top: 0;
+    }
+
+    .meta-label {
+        color: var(--muted);
+        font-weight: 600;
+    }
+
+    .meta-value {
+        font-weight: 800;
+        color: #111827;
+        text-align: right;
+        word-break: break-word;
+    }
+
+    @media (max-width: 1120px) {
+        .plant-form-hero-grid,
+        .plant-form-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .plant-form-page {
+            padding: 16px 0 30px;
+        }
+
+        .plant-form-topbar .topbar-wrap {
+            border-radius: 22px;
+        }
+
+        .plant-form-hero-card {
+            padding: 24px 18px;
+            border-radius: 26px;
+        }
+
+        .plant-form-hero-stats,
+        .plant-form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .plant-form-card-body,
+        .plant-form-card-head {
+            padding-left: 18px;
+            padding-right: 18px;
+        }
+    }
+</style>
+
+<div class="plant-form-page">
+    <div class="container">
+
+        <div class="plant-form-topbar">
+            <div class="topbar-wrap">
+                <div class="container topbar">
+                    <div class="brand-block">
+                        <div class="brand-icon">🪴</div>
+                        <div class="brand-text">
+                            <h1 class="plant-form-brand-title">GreenSpace Plant Editor</h1>
+                            <p class="plant-form-brand-desc">Tạo và chỉnh sửa sản phẩm cây cảnh dễ nhìn hơn</p>
+                        </div>
+                    </div>
+
+                    <div class="topbar-actions">
+                        <a href="/admin" class="btn btn-outline">Dashboard</a>
+                        <a href="/admin/plants" class="btn btn-green">Danh sách cây</a>
+                        <a href="/" class="btn btn-blue">← Trang chủ</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="plant-form-hero">
+            <div class="plant-form-hero-card">
+                <div class="plant-form-hero-grid">
+                    <div>
+                        <div class="plant-form-chip"
+                             th:text="${plant.id == null ? 'CREATE PRODUCT' : 'EDIT PRODUCT'}"></div>
+
+                        <h1 class="plant-form-hero-title"
+                            th:text="${plant.id == null ? 'Thêm cây mới vào hệ thống' : 'Cập nhật thông tin sản phẩm cây cảnh'}"></h1>
+
+                        <p class="plant-form-hero-desc"
+                           th:text="${plant.id == null ? 'Tạo sản phẩm mới với đầy đủ tên, giá, tồn kho, mô tả và hình ảnh để hiển thị đẹp hơn ở trang người dùng.' : 'Chỉnh sửa lại thông tin sản phẩm để đồng bộ dữ liệu và cải thiện cách hiển thị trên website.'}">
+                        </p>
+                    </div>
+
+                    <div class="plant-form-hero-stats">
+                        <div class="plant-form-hero-stat">
+                            <strong th:text="${plant.id == null ? 'New' : '#' + plant.id}">New</strong>
+                            <span>Mã sản phẩm</span>
+                        </div>
+
+                        <div class="plant-form-hero-stat">
+                            <strong>Live</strong>
+                            <span>Xem trước ngay</span>
+                        </div>
+
+                        <div class="plant-form-hero-stat">
+                            <strong>Clean</strong>
+                            <span>Form rõ ràng hơn</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="plant-form-layout">
+            <div class="card">
+                <div class="plant-form-card-head">
+                    <div class="plant-form-label-top">Thông tin sản phẩm</div>
+                    <h2 class="section-title"
+                        th:text="${plant.id == null ? 'Nhập thông tin cây mới' : 'Chỉnh sửa sản phẩm'}">
+                    </h2>
+                    <p class="plant-form-card-desc">
+                        Điền đầy đủ thông tin để sản phẩm hiển thị đẹp hơn ở trang người dùng và dễ quản lý hơn ở trang admin.
+                    </p>
+                </div>
+
+                <div class="plant-form-card-body">
+                    <form th:action="@{/admin/plants/save}" method="post" th:object="${plant}">
+                        <input type="hidden" th:field="*{id}">
+
+                        <div class="plant-form-grid">
+                            <div class="plant-form-field">
+                                <label for="name">Tên cây</label>
+                                <input id="name" type="text" th:field="*{name}" placeholder="Ví dụ: Cây lưỡi hổ" required>
+                            </div>
+
+                            <div class="plant-form-field">
+                                <label for="category">Danh mục</label>
+                                <input id="category" type="text" th:field="*{category}" placeholder="Ví dụ: Cây để bàn, Cây nội thất">
+                            </div>
+
+                            <div class="plant-form-field">
+                                <label for="price">Giá bán</label>
+                                <input id="price" type="number" th:field="*{price}" placeholder="Nhập giá bán" min="0" required>
+                            </div>
+
+                            <div class="plant-form-field">
+                                <label for="stock">Số lượng tồn kho</label>
+                                <input id="stock" type="number" th:field="*{stock}" placeholder="Nhập số lượng" min="0">
+                            </div>
+
+                            <div class="plant-form-field full">
+                                <label for="description">Mô tả</label>
+                                <textarea id="description"
+                                          th:field="*{description}"
+                                          placeholder="Nhập mô tả ngắn về cây, cách chăm sóc, phong cách phù hợp..."
+                                          style="min-height:150px;"></textarea>
+                                <div class="plant-form-help">
+                                    Mô tả rõ ràng sẽ giúp sản phẩm chuyên nghiệp hơn ở trang chủ và dễ ra quyết định hơn với khách hàng.
+                                </div>
+                            </div>
+
+                            <div class="plant-form-field full">
+                                <label for="imageUrl">Ảnh URL</label>
+                                <input id="imageUrl" type="text" th:field="*{imageUrl}" placeholder="Dán link ảnh vào đây">
+                                <div class="plant-form-help">
+                                    Nên dùng ảnh ngang hoặc vuông, rõ nét, sáng và đúng sản phẩm.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="plant-form-actions">
+                            <a href="/admin/plants" class="btn btn-outline">Hủy</a>
+                            <button type="submit" class="btn btn-green">Lưu sản phẩm</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="plant-form-side">
+                <div class="card">
+                    <div class="plant-form-card-head">
+                        <div class="plant-form-label-top">Preview</div>
+                        <h2 class="section-title" style="margin-bottom:0;">Xem trước sản phẩm</h2>
+                        <p class="plant-form-card-desc">Hiển thị mô phỏng nhanh cách sản phẩm có thể xuất hiện.</p>
+                    </div>
+
+                    <div class="plant-form-card-body">
+                        <div class="preview-shell">
+                            <div class="preview-card">
+                                <div class="preview-image-box">
+                                    <img id="imagePreview"
+                                         th:if="${plant.imageUrl != null and !#strings.isEmpty(plant.imageUrl)}"
+                                         th:src="${plant.imageUrl}"
+                                         alt="Preview ảnh cây">
+
+                                    <div id="previewEmpty"
+                                         class="preview-empty"
+                                         th:if="${plant.imageUrl == null or #strings.isEmpty(plant.imageUrl)}">
+                                        Chưa có ảnh để xem trước.
+                                    </div>
+                                </div>
+
+                                <div class="preview-content">
+                                    <div id="previewName"
+                                         class="preview-name"
+                                         th:text="${plant.name != null and !#strings.isEmpty(plant.name) ? plant.name : 'Tên cây sẽ hiển thị ở đây'}">
+                                    </div>
+
+                                    <div id="previewCategory"
+                                         class="preview-category"
+                                         th:text="${plant.category != null and !#strings.isEmpty(plant.category) ? plant.category : 'Chưa có danh mục'}">
+                                    </div>
+
+                                    <div id="previewPrice" class="preview-price">
+                                        <span th:text="${plant.price != null ? #numbers.formatDecimal(plant.price, 0, 'COMMA', 0, 'POINT') : '0'}"></span> VND
+                                    </div>
+
+                                    <div id="previewDesc"
+                                         class="preview-desc"
+                                         th:text="${plant.description != null and !#strings.isEmpty(plant.description) ? plant.description : 'Mô tả sản phẩm sẽ xuất hiện tại đây khi bạn nhập nội dung.'}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="plant-form-card-head">
+                        <div class="plant-form-label-top">Thông tin nhanh</div>
+                        <h2 class="section-title" style="margin-bottom:0;">Tóm tắt dữ liệu</h2>
+                        <p class="plant-form-card-desc">Kiểm tra nhanh các trường chính trước khi lưu.</p>
+                    </div>
+
+                    <div class="plant-form-card-body">
+                        <div class="meta-box">
+                            <div class="meta-title">Thông tin hiện tại</div>
+
+                            <div class="meta-row">
+                                <span class="meta-label">Trạng thái form</span>
+                                <span class="meta-value" th:text="${plant.id == null ? 'Thêm mới' : 'Chỉnh sửa'}"></span>
+                            </div>
+
+                            <div class="meta-row">
+                                <span class="meta-label">ID sản phẩm</span>
+                                <span class="meta-value" th:text="${plant.id == null ? 'Chưa có' : plant.id}"></span>
+                            </div>
+
+                            <div class="meta-row">
+                                <span class="meta-label">Tồn kho</span>
+                                <span id="metaStock" class="meta-value" th:text="${plant.stock != null ? plant.stock : 0}"></span>
+                            </div>
+
+                            <div class="meta-row">
+                                <span class="meta-label">Giá bán</span>
+                                <span id="metaPrice"
+                                      class="meta-value"
+                                      th:text="${plant.price != null ? #numbers.formatDecimal(plant.price, 0, 'COMMA', 0, 'POINT') + ' VND' : '0 VND'}">
+                                </span>
+                            </div>
+
+                            <div class="meta-row">
+                                <span class="meta-label">Danh mục</span>
+                                <span id="metaCategory"
+                                      class="meta-value"
+                                      th:text="${plant.category != null and !#strings.isEmpty(plant.category) ? plant.category : 'Chưa có'}">
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<script>
+    const imageInput = document.getElementById('imageUrl');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewEmpty = document.getElementById('previewEmpty');
+
+    const nameInput = document.getElementById('name');
+    const categoryInput = document.getElementById('category');
+    const priceInput = document.getElementById('price');
+    const stockInput = document.getElementById('stock');
+    const descriptionInput = document.getElementById('description');
+
+    const previewName = document.getElementById('previewName');
+    const previewCategory = document.getElementById('previewCategory');
+    const previewPrice = document.getElementById('previewPrice');
+    const previewDesc = document.getElementById('previewDesc');
+
+    const metaCategory = document.getElementById('metaCategory');
+    const metaPrice = document.getElementById('metaPrice');
+    const metaStock = document.getElementById('metaStock');
+
+    function formatVnd(value) {
+        const number = Number(value || 0);
+        return new Intl.NumberFormat('vi-VN').format(number) + ' VND';
+    }
+
+    function showEmptyPreview(message = 'Chưa có ảnh để xem trước.') {
+        if (imagePreview) {
+            imagePreview.style.display = 'none';
+            imagePreview.removeAttribute('src');
+        }
+
+        if (previewEmpty) {
+            previewEmpty.style.display = 'flex';
+            previewEmpty.textContent = message;
+        }
+    }
+
+    function showImagePreview(url) {
+        if (!imagePreview) return;
+        imagePreview.style.display = 'block';
+        imagePreview.src = url;
+
+        if (previewEmpty) {
+            previewEmpty.style.display = 'none';
+        }
+    }
+
+    function normalizeImageUrl(url) {
+        if (!url) return '';
+        let cleanUrl = url.trim();
+
+        const driveMatch = cleanUrl.match(/\/file\/d\/([^/]+)\//);
+        if (driveMatch && driveMatch[1]) {
+            return 'https://drive.google.com/uc?export=view&id=' + driveMatch[1];
+        }
+
+        const openMatch = cleanUrl.match(/[?&]id=([^&]+)/);
+        if (cleanUrl.includes('drive.google.com') && openMatch && openMatch[1]) {
+            return 'https://drive.google.com/uc?export=view&id=' + openMatch[1];
+        }
+
+        return cleanUrl;
+    }
+
+    function updatePreviewImage() {
+        const rawValue = imageInput ? imageInput.value.trim() : '';
+
+        if (!rawValue) {
+            showEmptyPreview('Chưa có ảnh để xem trước.');
+            return;
+        }
+
+        const finalUrl = normalizeImageUrl(rawValue);
+        showImagePreview(finalUrl);
+    }
+
+    function updatePreviewText() {
+        if (previewName && nameInput) {
+            previewName.textContent = nameInput.value.trim() || 'Tên cây sẽ hiển thị ở đây';
+        }
+
+        const category = categoryInput ? (categoryInput.value.trim() || 'Chưa có danh mục') : 'Chưa có danh mục';
+        if (previewCategory) previewCategory.textContent = category;
+        if (metaCategory) metaCategory.textContent = category;
+
+        const priceValue = priceInput ? (priceInput.value.trim() || '0') : '0';
+        if (previewPrice) previewPrice.textContent = formatVnd(priceValue);
+        if (metaPrice) metaPrice.textContent = formatVnd(priceValue);
+
+        if (previewDesc && descriptionInput) {
+            previewDesc.textContent =
+                descriptionInput.value.trim() || 'Mô tả sản phẩm sẽ xuất hiện tại đây khi bạn nhập nội dung.';
+        }
+
+        if (metaStock && stockInput) {
+            metaStock.textContent = stockInput.value.trim() || '0';
+        }
+    }
+
+    if (imagePreview) {
+        imagePreview.onload = function () {
+            imagePreview.style.display = 'block';
+            if (previewEmpty) previewEmpty.style.display = 'none';
+        };
+
+        imagePreview.onerror = function () {
+            showEmptyPreview('Link ảnh không hợp lệ hoặc không phải ảnh trực tiếp.');
+        };
+    }
+
+    if (imageInput) {
+        imageInput.addEventListener('input', updatePreviewImage);
+        imageInput.addEventListener('change', updatePreviewImage);
+        imageInput.addEventListener('paste', function () {
+            setTimeout(updatePreviewImage, 50);
+        });
+    }
+
+    [nameInput, categoryInput, priceInput, stockInput, descriptionInput].forEach(input => {
+        if (input) input.addEventListener('input', updatePreviewText);
+    });
+
+    updatePreviewImage();
+    updatePreviewText();
+</script>
+
+</body>
+</html>

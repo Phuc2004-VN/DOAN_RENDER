@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+
+<head th:replace="~{fragments/head :: head('Quản lý đơn hàng | GreenSpace Admin')}"></head>
+<body>
+
+<style>
+    .admin-orders-page {
+        padding: 24px 0 44px;
+    }
+
+    .admin-orders-topbar {
+        margin-bottom: 24px;
+    }
+
+    .admin-orders-topbar .topbar-wrap {
+        position: static;
+        border-radius: 28px;
+        overflow: hidden;
+    }
+
+    .admin-orders-topbar .topbar {
+        min-height: 88px;
+    }
+
+    .admin-orders-brand-title {
+        font-size: 34px;
+        font-weight: 700;
+        line-height: 1;
+        font-family: 'Cormorant Garamond', serif;
+        color: var(--heading);
+        margin: 0;
+    }
+
+    .admin-orders-brand-desc {
+        font-size: 13px;
+        color: var(--muted);
+        font-weight: 500;
+        margin-top: 4px;
+    }
+
+    .admin-orders-hero {
+        margin-bottom: 24px;
+    }
+
+    .admin-orders-hero-card {
+        overflow: hidden;
+        border-radius: 34px;
+        padding: 34px;
+        background:
+            linear-gradient(135deg, rgba(15,23,42,0.96), rgba(22,101,52,0.92)),
+            url('https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=1400&q=80') center/cover;
+        color: #fff;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .admin-orders-hero-grid {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 24px;
+        align-items: end;
+    }
+
+    .admin-orders-chip {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 16px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.14);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        margin-bottom: 18px;
+    }
+
+    .admin-orders-hero-title {
+        margin: 0 0 16px;
+        font-size: clamp(36px, 5vw, 54px);
+        line-height: 1.04;
+        color: #fff;
+        font-family: 'Cormorant Garamond', serif;
+    }
+
+    .admin-orders-hero-desc {
+        margin: 0;
+        max-width: 760px;
+        font-size: 15px;
+        line-height: 1.85;
+        color: rgba(255,255,255,0.84);
+    }
+
+    .admin-orders-hero-stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .admin-orders-hero-stat {
+        background: rgba(255,255,255,0.12);
+        border-radius: 22px;
+        padding: 18px 16px;
+        text-align: center;
+        backdrop-filter: blur(10px);
+    }
+
+    .admin-orders-hero-stat strong {
+        display: block;
+        font-size: 24px;
+        font-weight: 800;
+        margin-bottom: 6px;
+        color: #fff;
+    }
+
+    .admin-orders-hero-stat span {
+        display: block;
+        font-size: 13px;
+        color: rgba(255,255,255,0.78);
+    }
+
+    .admin-orders-card-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 18px 22px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(250,250,250,0.9);
+        flex-wrap: wrap;
+    }
+
+    .admin-orders-card-meta {
+        font-size: 14px;
+        color: #4b5563;
+        font-weight: 600;
+    }
+
+    .admin-orders-filter {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 14px;
+        padding: 18px 22px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255,255,255,0.78);
+    }
+
+    .admin-orders-filter-field label {
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+        color: #374151;
+        margin-bottom: 7px;
+    }
+
+    .admin-orders-filter-actions {
+        display: flex;
+        gap: 10px;
+        align-items: end;
+        flex-wrap: wrap;
+        grid-column: 1 / -1;
+    }
+
+    .admin-orders-list-wrap {
+        padding: 24px;
+    }
+
+    .admin-orders-list {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .order-card {
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(250,249,244,0.95));
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+
+    .order-card-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: flex-start;
+        padding: 22px 22px 16px;
+        border-bottom: 1px solid rgba(38, 75, 53, 0.08);
+        flex-wrap: wrap;
+    }
+
+    .order-card-id {
+        font-size: 28px;
+        font-weight: 800;
+        line-height: 1.1;
+        color: var(--heading);
+        margin-bottom: 6px;
+        letter-spacing: -0.02em;
+    }
+
+    .order-card-date {
+        font-size: 13px;
+        color: #6b7280;
+        line-height: 1.6;
+    }
+
+    .order-card-total {
+        text-align: right;
+    }
+
+    .order-card-total-label {
+        font-size: 12px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-weight: 800;
+        margin-bottom: 6px;
+    }
+
+    .order-card-total-value {
+        font-size: 30px;
+        font-weight: 800;
+        color: #111827;
+        letter-spacing: -0.02em;
+        white-space: nowrap;
+    }
+
+    .order-card-body {
+        padding: 18px 22px 22px;
+    }
+
+    .order-card-grid {
+        display: grid;
+        grid-template-columns: 1.05fr 1fr 1fr 1.15fr 0.95fr;
+        gap: 16px;
+        align-items: start;
+    }
+
+    .order-block {
+        padding: 16px;
+        border-radius: 22px;
+        background: rgba(255,255,255,0.74);
+        border: 1px solid rgba(38, 75, 53, 0.08);
+        height: 100%;
+    }
+
+    .order-block-title {
+        font-size: 12px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        font-weight: 800;
+        margin-bottom: 12px;
+    }
+
+    .order-field {
+        margin-bottom: 10px;
+    }
+
+    .order-field:last-child {
+        margin-bottom: 0;
+    }
+
+    .order-label {
+        font-size: 12px;
+        color: #6b7280;
+        margin-bottom: 4px;
+        font-weight: 700;
+    }
+
+    .order-value {
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1.6;
+        color: var(--text);
+        word-break: break-word;
+    }
+
+    .order-value-note {
+        font-size: 13px;
+        color: #6b7280;
+        line-height: 1.6;
+        word-break: break-word;
+    }
+
+    .order-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 7px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 800;
+        white-space: nowrap;
+        margin-bottom: 8px;
+    }
+
+    .badge-bank {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .badge-cod {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .badge-paid,
+    .badge-done {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .badge-unpaid,
+    .badge-cancelled {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .badge-waiting,
+    .badge-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .badge-processing {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .badge-pending-payment {
+        background: #ede9fe;
+        color: #6d28d9;
+    }
+
+    .order-status-note {
+        color: #6b7280;
+        font-size: 13px;
+        line-height: 1.6;
+        margin-top: 4px;
+    }
+
+    .order-action-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .order-action-stack .btn {
+        width: 100%;
+    }
+
+    .order-static-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 16px;
+        font-size: 13px;
+        font-weight: 800;
+        text-align: center;
+    }
+
+    .pill-done {
+        background: #ecfdf5;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+    }
+
+    .pill-cancelled {
+        background: #fef2f2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
+
+    .admin-orders-empty {
+        text-align: center;
+        padding: 30px;
+        color: var(--muted);
+        font-weight: 600;
+    }
+
+    .admin-orders-pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 24px;
+    }
+
+    .toast-container {
+        position: fixed;
+        top: 92px;
+        right: 18px;
+        z-index: 2000;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: min(420px, calc(100vw - 24px));
+    }
+
+    .toast {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.97);
+        border: 1px solid rgba(255, 255, 255, 0.82);
+        box-shadow: var(--shadow-lg);
+        backdrop-filter: blur(12px);
+    }
+
+    .toast-icon {
+        flex: 0 0 38px;
+        width: 38px;
+        height: 38px;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+    .toast-content {
+        flex: 1;
+    }
+
+    .toast-title {
+        font-size: 14px;
+        font-weight: 800;
+        margin-bottom: 2px;
+    }
+
+    .toast-message {
+        font-size: 14px;
+        color: #374151;
+        line-height: 1.5;
+    }
+
+    .toast-close {
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        color: #6b7280;
+        font-size: 18px;
+        line-height: 1;
+    }
+
+    .toast-success {
+        border-left: 5px solid #6f9a55;
+    }
+
+    .toast-success .toast-icon {
+        background: rgba(111, 154, 85, 0.12);
+        color: #305537;
+    }
+
+    .toast-hide {
+        opacity: 0;
+        transform: translateY(-10px);
+        transition: all 0.25s ease;
+    }
+
+    @media (max-width: 1280px) {
+        .order-card-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 1120px) {
+        .admin-orders-hero-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .admin-orders-filter {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 768px) {
+        .admin-orders-page {
+            padding: 16px 0 30px;
+        }
+
+        .admin-orders-topbar .topbar-wrap {
+            border-radius: 22px;
+        }
+
+        .admin-orders-hero-card {
+            padding: 24px 18px;
+            border-radius: 26px;
+        }
+
+        .admin-orders-hero-stats,
+        .admin-orders-filter,
+        .order-card-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .admin-orders-card-head,
+        .admin-orders-filter,
+        .admin-orders-list-wrap {
+            padding-left: 18px;
+            padding-right: 18px;
+        }
+
+        .order-card-top,
+        .order-card-body {
+            padding-left: 18px;
+            padding-right: 18px;
+        }
+
+        .order-card-total {
+            text-align: left;
+        }
+
+        .toast-container {
+            top: 82px;
+            right: 10px;
+            left: 10px;
+            width: auto;
+        }
+    }
+</style>
+
+<div class="toast-container">
+    <div th:if="${successMessage}" class="toast toast-success auto-toast">
+        <div class="toast-icon">✓</div>
+        <div class="toast-content">
+            <div class="toast-title">Thành công</div>
+            <div class="toast-message" th:text="${successMessage}"></div>
+        </div>
+        <button type="button" class="toast-close" onclick="closeToast(this)">×</button>
+    </div>
+</div>
+
+<div class="admin-orders-page">
+    <div class="container">
+
+        <div class="admin-orders-topbar">
+            <div class="topbar-wrap">
+                <div class="container topbar">
+                    <div class="brand-block">
+                        <div class="brand-icon">📦</div>
+                        <div class="brand-text">
+                            <h1 class="admin-orders-brand-title">GreenSpace Orders</h1>
+                            <p class="admin-orders-brand-desc">Quản lý đơn hàng rõ ràng, nhanh và hiện đại hơn</p>
+                        </div>
+                    </div>
+
+                    <div class="topbar-actions">
+                        <a href="/admin" class="btn btn-outline">← Dashboard</a>
+                        <a href="/" class="btn btn-blue">Trang chủ</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="admin-orders-hero">
+            <div class="admin-orders-hero-card">
+                <div class="admin-orders-hero-grid">
+                    <div>
+                        <div class="admin-orders-chip">ORDER MANAGEMENT</div>
+                        <h1 class="admin-orders-hero-title">Theo dõi và xử lý đơn hàng nhanh hơn</h1>
+                        <p class="admin-orders-hero-desc">
+                            Tìm kiếm, lọc, xác nhận thanh toán, hoàn tất hoặc hủy đơn chỉ trong một màn hình.
+                            Giao diện được tối ưu để admin thao tác nhanh và ít nhầm hơn.
+                        </p>
+                    </div>
+
+                    <div class="admin-orders-hero-stats">
+                        <div class="admin-orders-hero-stat">
+                            <strong th:text="${currentPage + 1}">1</strong>
+                            <span>Trang hiện tại</span>
+                        </div>
+                        <div class="admin-orders-hero-stat">
+                            <strong th:text="${totalPages == 0 ? 1 : totalPages}">1</strong>
+                            <span>Tổng số trang</span>
+                        </div>
+                        <div class="admin-orders-hero-stat">
+                            <strong th:text="${#lists.size(orders)}">0</strong>
+                            <span>Đơn trong trang</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="admin-orders-card-head">
+                <div class="admin-orders-card-meta">
+                    Hiển thị 10 đơn mỗi trang • Trang
+                    <span th:text="${currentPage + 1}">1</span> /
+                    <span th:text="${totalPages == 0 ? 1 : totalPages}">1</span>
+                </div>
+                <div class="admin-orders-card-meta">
+                    Tổng đơn trong trang này:
+                    <span th:text="${#lists.size(orders)}">0</span>
+                </div>
+            </div>
+
+            <form th:action="@{/admin/orders}" method="get" class="admin-orders-filter">
+                <div class="admin-orders-filter-field">
+                    <label for="fromDate">Từ ngày</label>
+                    <input type="date" id="fromDate" name="fromDate" th:value="${fromDate}">
+                </div>
+
+                <div class="admin-orders-filter-field">
+                    <label for="toDate">Đến ngày</label>
+                    <input type="date" id="toDate" name="toDate" th:value="${toDate}">
+                </div>
+
+                <div class="admin-orders-filter-field" style="grid-column: span 2;">
+                    <label for="keyword">Tìm kiếm</label>
+                    <input type="text" id="keyword" name="keyword" placeholder="Tìm ID / SĐT / tên người nhận" th:value="${keyword}">
+                </div>
+
+                <div class="admin-orders-filter-field">
+                    <label for="status">Trạng thái đơn</label>
+                    <select id="status" name="status">
+                        <option value="">-- Tất cả --</option>
+                        <option value="PENDING" th:selected="${status == 'PENDING'}">PENDING</option>
+                        <option value="PENDING_PAYMENT" th:selected="${status == 'PENDING_PAYMENT'}">PENDING_PAYMENT</option>
+                        <option value="PROCESSING" th:selected="${status == 'PROCESSING'}">PROCESSING</option>
+                        <option value="DONE" th:selected="${status == 'DONE'}">DONE</option>
+                        <option value="CANCELLED" th:selected="${status == 'CANCELLED'}">CANCELLED</option>
+                    </select>
+                </div>
+
+                <div class="admin-orders-filter-field">
+                    <label for="payment">Phương thức thanh toán</label>
+                    <select id="payment" name="payment">
+                        <option value="">-- Tất cả --</option>
+                        <option value="COD" th:selected="${payment == 'COD'}">COD</option>
+                        <option value="BANK_QR" th:selected="${payment == 'BANK_QR'}">BANK_QR</option>
+                    </select>
+                </div>
+
+                <div class="admin-orders-filter-actions">
+                    <button type="submit" class="btn btn-blue">Lọc đơn</button>
+                    <a th:href="@{/admin/orders}" class="btn btn-outline">Bỏ lọc</a>
+                </div>
+            </form>
+
+            <div class="admin-orders-list-wrap">
+                <div class="admin-orders-list">
+                    <div class="order-card" th:each="o : ${orders}">
+                        <div class="order-card-top">
+                            <div>
+                                <div class="order-card-id" th:text="'#' + ${o.id}">#1</div>
+                                <div class="order-card-date" th:text="${#temporals.format(o.createdAt, 'dd/MM/yyyy HH:mm')}"></div>
+                            </div>
+
+                            <div class="order-card-total">
+                                <div class="order-card-total-label">Tổng tiền</div>
+                                <div class="order-card-total-value"
+                                     th:text="${#numbers.formatDecimal(o.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' VND'">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="order-card-body">
+                            <div class="order-card-grid">
+
+                                <div class="order-block">
+                                    <div class="order-block-title">Khách hàng</div>
+
+                                    <div class="order-field">
+                                        <div class="order-label">Tài khoản</div>
+                                        <div class="order-value" th:text="${o.user.username}"></div>
+                                    </div>
+
+                                    <div class="order-field">
+                                        <div class="order-label">Người nhận</div>
+                                        <div class="order-value" th:text="${o.receiverName} ?: '-'"></div>
+                                    </div>
+
+                                    <div class="order-field">
+                                        <div class="order-label">Số điện thoại</div>
+                                        <div class="order-value" th:text="${o.phone} ?: '-'"></div>
+                                    </div>
+                                </div>
+
+                                <div class="order-block">
+                                    <div class="order-block-title">Thanh toán</div>
+
+                                    <div class="order-field">
+                                        <div class="order-label">Phương thức</div>
+                                        <span class="order-badge"
+                                              th:classappend="${o.paymentMethod == 'BANK_QR'} ? ' badge-bank' : ' badge-cod'"
+                                              th:text="${o.paymentMethod}"></span>
+                                    </div>
+
+                                    <div class="order-field">
+                                        <div class="order-label">Trạng thái thanh toán</div>
+                                        <span th:if="${o.paymentStatus == 'PAID'}" class="order-badge badge-paid">PAID</span>
+                                        <span th:if="${o.paymentStatus == 'UNPAID'}" class="order-badge badge-unpaid">UNPAID</span>
+                                        <span th:if="${o.paymentStatus == 'WAITING_TRANSFER'}" class="order-badge badge-waiting">WAITING_TRANSFER</span>
+                                    </div>
+
+                                    <div class="order-field">
+                                        <div class="order-label">Mã chuyển khoản</div>
+                                        <div class="order-value" th:text="${o.paymentReference} ?: '-'"></div>
+                                    </div>
+                                </div>
+
+                                <div class="order-block">
+                                    <div class="order-block-title">Trạng thái đơn</div>
+
+                                    <div class="order-field">
+                                        <div class="order-label">Trạng thái hiện tại</div>
+                                        <span th:if="${o.status == 'DONE'}" class="order-badge badge-done">DONE</span>
+                                        <span th:if="${o.status == 'PROCESSING'}" class="order-badge badge-processing">PROCESSING</span>
+                                        <span th:if="${o.status == 'PENDING'}" class="order-badge badge-pending">PENDING</span>
+                                        <span th:if="${o.status == 'PENDING_PAYMENT'}" class="order-badge badge-pending-payment">PENDING_PAYMENT</span>
+                                        <span th:if="${o.status == 'CANCELLED'}" class="order-badge badge-cancelled">CANCELLED</span>
+                                    </div>
+
+                                    <div th:if="${o.status == 'DONE'}" class="order-status-note">
+                                        Đơn đã hoàn tất
+                                    </div>
+
+                                    <div th:if="${o.status == 'CANCELLED'}" class="order-status-note">
+                                        Đơn đã hủy
+                                    </div>
+                                </div>
+
+                                <div class="order-block">
+                                    <div class="order-block-title">Giao hàng</div>
+
+                                    <div class="order-field">
+                                        <div class="order-label">Địa chỉ giao hàng</div>
+                                        <div class="order-value" th:text="${o.address} ?: '-'"></div>
+                                    </div>
+
+                                    <div class="order-field">
+                                        <div class="order-label">Ghi chú</div>
+                                        <div class="order-value-note" th:text="${o.note} ?: 'Không có ghi chú'"></div>
+                                    </div>
+                                </div>
+
+                                <div class="order-block">
+                                    <div class="order-block-title">Thao tác</div>
+
+                                    <div th:if="${o.status != 'DONE' and o.status != 'CANCELLED'}" class="order-action-stack">
+                                        <form th:action="@{/admin/orders/quick-paid}" method="post" th:if="${o.paymentStatus != 'PAID'}">
+                                            <input type="hidden" name="id" th:value="${o.id}">
+                                            <input type="hidden" name="page" th:value="${currentPage}">
+                                            <input type="hidden" name="fromDate" th:value="${fromDate}">
+                                            <input type="hidden" name="toDate" th:value="${toDate}">
+                                            <input type="hidden" name="keyword" th:value="${keyword}">
+                                            <input type="hidden" name="status" th:value="${status}">
+                                            <input type="hidden" name="payment" th:value="${payment}">
+                                            <button type="submit" class="btn btn-green">Xác nhận PAID</button>
+                                        </form>
+
+                                        <form th:action="@{/admin/orders/quick-done}" method="post">
+                                            <input type="hidden" name="id" th:value="${o.id}">
+                                            <input type="hidden" name="page" th:value="${currentPage}">
+                                            <input type="hidden" name="fromDate" th:value="${fromDate}">
+                                            <input type="hidden" name="toDate" th:value="${toDate}">
+                                            <input type="hidden" name="keyword" th:value="${keyword}">
+                                            <input type="hidden" name="status" th:value="${status}">
+                                            <input type="hidden" name="payment" th:value="${payment}">
+                                            <button type="submit" class="btn btn-blue">Hoàn tất đơn</button>
+                                        </form>
+
+                                        <form th:action="@{/admin/orders/quick-cancel}" method="post"
+                                              onsubmit="return confirm('Hủy đơn này và hoàn lại tồn kho?');">
+                                            <input type="hidden" name="id" th:value="${o.id}">
+                                            <input type="hidden" name="page" th:value="${currentPage}">
+                                            <input type="hidden" name="fromDate" th:value="${fromDate}">
+                                            <input type="hidden" name="toDate" th:value="${toDate}">
+                                            <input type="hidden" name="keyword" th:value="${keyword}">
+                                            <input type="hidden" name="status" th:value="${status}">
+                                            <input type="hidden" name="payment" th:value="${payment}">
+                                            <button type="submit" class="btn" style="background:#dc2626; color:white;">Hủy đơn</button>
+                                        </form>
+                                    </div>
+
+                                    <div th:if="${o.status == 'DONE'}" class="order-static-pill pill-done">
+                                        Đơn đã hoàn tất
+                                    </div>
+
+                                    <div th:if="${o.status == 'CANCELLED'}" class="order-static-pill pill-cancelled">
+                                        Đơn đã hủy
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:if="${#lists.isEmpty(orders)}" class="admin-orders-empty">
+                        Không có đơn nào phù hợp bộ lọc.
+                    </div>
+                </div>
+
+                <div class="admin-orders-pagination" th:if="${totalPages > 0}">
+                    <a th:href="@{/admin/orders(page=${currentPage - 1}, fromDate=${fromDate}, toDate=${toDate}, keyword=${keyword}, status=${status}, payment=${payment})}"
+                       class="btn btn-outline"
+                       th:styleappend="${currentPage == 0} ? 'pointer-events:none; opacity:0.45;' : ''">←</a>
+
+                    <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                        <span th:if="${i == currentPage}" class="btn btn-blue" th:text="${i + 1}"></span>
+                        <a th:if="${i != currentPage}"
+                           th:href="@{/admin/orders(page=${i}, fromDate=${fromDate}, toDate=${toDate}, keyword=${keyword}, status=${status}, payment=${payment})}"
+                           class="btn btn-outline"
+                           th:text="${i + 1}"></a>
+                    </th:block>
+
+                    <a th:href="@{/admin/orders(page=${currentPage + 1}, fromDate=${fromDate}, toDate=${toDate}, keyword=${keyword}, status=${status}, payment=${payment})}"
+                       class="btn btn-outline"
+                       th:styleappend="${currentPage >= totalPages - 1} ? 'pointer-events:none; opacity:0.45;' : ''">→</a>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<script>
+    function closeToast(button) {
+        const toast = button.closest('.toast');
+        if (!toast) return;
+        toast.classList.add('toast-hide');
+        setTimeout(() => toast.remove(), 250);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const toasts = document.querySelectorAll('.auto-toast');
+        toasts.forEach((toast, index) => {
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.classList.add('toast-hide');
+                    setTimeout(() => {
+                        if (toast.parentNode) toast.remove();
+                    }, 250);
+                }
+            }, 3800 + index * 250);
+        });
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+
+<head th:replace="~{fragments/head :: head('Đăng ký | GreenSpace')}"></head>
+
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<style>
+    .register-page {
+        padding: 24px 0 44px;
+    }
+
+    .register-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.08fr) minmax(420px, 0.92fr);
+        gap: 24px;
+        align-items: stretch;
+    }
+
+    .register-showcase {
+        min-height: 680px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        overflow: hidden;
+        border-radius: 34px;
+        padding: 34px;
+        color: #fff;
+        background:
+            linear-gradient(135deg, rgba(15,23,42,0.95), rgba(22,101,52,0.90)),
+            url('https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=1400&q=80') center/cover;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .register-chip {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 16px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.14);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        margin-bottom: 18px;
+    }
+
+    .register-showcase h1 {
+        margin: 0 0 16px;
+        font-size: clamp(38px, 5vw, 58px);
+        line-height: 1.03;
+        color: #fff;
+    }
+
+    .register-showcase p {
+        margin: 0;
+        max-width: 640px;
+        font-size: 15px;
+        line-height: 1.85;
+        color: rgba(255,255,255,0.84);
+    }
+
+    .register-feature-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 24px;
+    }
+
+    .register-feature-card {
+        padding: 18px;
+        border-radius: 24px;
+        background: rgba(255,255,255,0.10);
+        border: 1px solid rgba(255,255,255,0.08);
+        backdrop-filter: blur(10px);
+    }
+
+    .register-feature-card strong {
+        display: block;
+        font-size: 22px;
+        font-weight: 800;
+        margin-bottom: 8px;
+        color: #fff;
+    }
+
+    .register-feature-card span {
+        display: block;
+        font-size: 13px;
+        line-height: 1.65;
+        color: rgba(255,255,255,0.78);
+    }
+
+    .register-form-card {
+        max-width: 540px;
+        width: 100%;
+        margin: 0 auto;
+        align-self: center;
+    }
+
+    .register-form-body {
+        padding: 28px;
+    }
+
+    .register-label-top {
+        display: inline-block;
+        margin-bottom: 12px;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--accent);
+    }
+
+    .register-form-title {
+        margin-bottom: 10px;
+    }
+
+    .register-form-desc {
+        color: var(--muted);
+        margin-bottom: 24px;
+        line-height: 1.75;
+        font-size: 14px;
+    }
+
+    .register-field {
+        margin-bottom: 16px;
+    }
+
+    .register-field label {
+        display: block;
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: var(--heading);
+    }
+
+    .register-submit {
+        width: 100%;
+    }
+
+    .register-bottom {
+        margin-top: 22px;
+        text-align: center;
+        color: var(--muted);
+        line-height: 1.8;
+        font-size: 14px;
+    }
+
+    .register-link {
+        color: var(--accent);
+        font-weight: 800;
+    }
+
+    .register-bottom-home {
+        display: inline-block;
+        margin-top: 12px;
+        color: var(--primary);
+        font-weight: 800;
+    }
+
+    .toast-container {
+        position: fixed;
+        top: 92px;
+        right: 18px;
+        z-index: 2000;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: min(420px, calc(100vw - 24px));
+    }
+
+    .toast {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.97);
+        border: 1px solid rgba(255, 255, 255, 0.82);
+        box-shadow: var(--shadow-lg);
+        backdrop-filter: blur(12px);
+    }
+
+    .toast-icon {
+        flex: 0 0 38px;
+        width: 38px;
+        height: 38px;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+    .toast-content {
+        flex: 1;
+    }
+
+    .toast-title {
+        font-size: 14px;
+        font-weight: 800;
+        margin-bottom: 2px;
+    }
+
+    .toast-message {
+        font-size: 14px;
+        color: #374151;
+        line-height: 1.5;
+    }
+
+    .toast-close {
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        color: #6b7280;
+        font-size: 18px;
+        line-height: 1;
+    }
+
+    .toast-error {
+        border-left: 5px solid #c75146;
+    }
+
+    .toast-error .toast-icon {
+        background: rgba(199, 81, 70, 0.12);
+        color: #8f2f27;
+    }
+
+    .toast-hide {
+        opacity: 0;
+        transform: translateY(-10px);
+        transition: all 0.25s ease;
+    }
+
+    @media (max-width: 1120px) {
+        .register-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .register-showcase {
+            min-height: unset;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .register-page {
+            padding: 16px 0 30px;
+        }
+
+        .register-showcase {
+            padding: 24px 18px;
+            border-radius: 26px;
+        }
+
+        .register-feature-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .register-form-body {
+            padding: 20px 18px;
+        }
+
+        .toast-container {
+            top: 82px;
+            right: 10px;
+            left: 10px;
+            width: auto;
+        }
+    }
+</style>
+
+<div class="toast-container">
+    <div th:if="${error}" class="toast toast-error auto-toast">
+        <div class="toast-icon">!</div>
+        <div class="toast-content">
+            <div class="toast-title">Đăng ký thất bại</div>
+            <div class="toast-message" th:text="${error}"></div>
+        </div>
+        <button type="button" class="toast-close" onclick="closeToast(this)">×</button>
+    </div>
+</div>
+
+<div class="register-page">
+    <main class="container">
+        <div class="register-layout">
+
+            <section class="register-showcase">
+                <div>
+                    <div class="register-chip">BẮT ĐẦU HÀNH TRÌNH SỐNG XANH</div>
+                    <h1>Tạo tài khoản để khám phá thế giới cây cảnh hiện đại</h1>
+                    <p>
+                        Đăng ký GreenSpace để mua sắm nhanh hơn, lưu thông tin đơn hàng,
+                        theo dõi trải nghiệm mua cây cảnh mượt mà và đồng bộ hơn.
+                    </p>
+                </div>
+
+                <div class="register-feature-grid">
+                    <div class="register-feature-card">
+                        <strong>Simple</strong>
+                        <span>Đăng ký nhanh, thao tác gọn gàng và dễ dùng.</span>
+                    </div>
+
+                    <div class="register-feature-card">
+                        <strong>Modern</strong>
+                        <span>Giao diện đồng bộ với toàn bộ phong cách GreenSpace.</span>
+                    </div>
+
+                    <div class="register-feature-card">
+                        <strong>Ready</strong>
+                        <span>Sẵn sàng mua sắm và theo dõi đơn hàng thuận tiện hơn.</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card register-form-card">
+                <div class="register-form-body">
+                    <div class="register-label-top">Create account</div>
+                    <h2 class="section-title register-form-title">Đăng ký</h2>
+                    <p class="register-form-desc">
+                        Tạo tài khoản mới để bắt đầu mua sắm tại GreenSpace.
+                    </p>
+
+                    <form th:action="@{/register}" method="post" th:object="${user}">
+                        <div class="register-field">
+                            <label>Họ và tên</label>
+                            <input type="text" th:field="*{fullName}" placeholder="Nhập họ tên của bạn" required>
+                        </div>
+
+                        <div class="register-field">
+                            <label>Tên đăng nhập</label>
+                            <input type="text" th:field="*{username}" placeholder="Nhập username" required>
+                        </div>
+
+                        <div class="register-field">
+                            <label>Email</label>
+                            <input type="email" th:field="*{email}" placeholder="Nhập email của bạn" required>
+                        </div>
+
+                        <div class="register-field">
+                            <label>Mật khẩu</label>
+                            <input type="password" th:field="*{password}" placeholder="Tạo mật khẩu" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-green register-submit">Tạo tài khoản</button>
+                    </form>
+
+                    <div class="register-bottom">
+                        <p>Đã có tài khoản?
+                            <a th:href="@{/login}" class="register-link">Đăng nhập ngay</a>
+                        </p>
+                        <a th:href="@{/}" class="register-bottom-home">← Quay về trang chủ</a>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script>
+    function closeToast(button) {
+        const toast = button.closest('.toast');
+        if (!toast) return;
+        toast.classList.add('toast-hide');
+        setTimeout(() => toast.remove(), 250);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const toasts = document.querySelectorAll('.auto-toast');
+        toasts.forEach((toast, index) => {
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.classList.add('toast-hide');
+                    setTimeout(() => {
+                        if (toast.parentNode) toast.remove();
+                    }, 250);
+                }
+            }, 4200 + index * 250);
+        });
+    });
+</script>
+
+</body>
+</html>

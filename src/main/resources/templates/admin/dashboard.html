@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+
+<head th:replace="~{fragments/head :: head('Dashboard Admin | GreenSpace')}"></head>
+
+<body>
+
+<style>
+    .admin-page {
+        padding: 24px 0 44px;
+    }
+
+    .admin-topbar {
+        margin-bottom: 24px;
+    }
+
+    .admin-topbar .topbar-wrap {
+        position: static;
+        border-radius: 28px;
+        overflow: hidden;
+    }
+
+    .admin-topbar .topbar {
+        min-height: 88px;
+    }
+
+    .admin-brand-title {
+        font-size: 34px;
+        font-weight: 700;
+        line-height: 1;
+        font-family: 'Cormorant Garamond', serif;
+        color: var(--heading);
+        margin: 0;
+    }
+
+    .admin-brand-desc {
+        font-size: 13px;
+        color: var(--muted);
+        font-weight: 500;
+        margin-top: 4px;
+    }
+
+    .admin-hero {
+        margin-bottom: 24px;
+    }
+
+    .admin-hero-card {
+        overflow: hidden;
+        border-radius: 34px;
+        padding: 34px;
+        background:
+            linear-gradient(135deg, rgba(15,23,42,0.95), rgba(22,101,52,0.90)),
+            url('https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=1400&q=80') center/cover;
+        color: #fff;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .admin-hero-grid {
+        display: grid;
+        grid-template-columns: 1.12fr 0.88fr;
+        gap: 24px;
+        align-items: end;
+    }
+
+    .admin-chip {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 16px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.14);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        margin-bottom: 18px;
+    }
+
+    .admin-hero-title {
+        margin: 0 0 16px;
+        font-size: clamp(36px, 5vw, 56px);
+        line-height: 1.03;
+        color: #fff;
+        font-family: 'Cormorant Garamond', serif;
+    }
+
+    .admin-hero-desc {
+        margin: 0;
+        max-width: 760px;
+        font-size: 15px;
+        line-height: 1.85;
+        color: rgba(255,255,255,0.84);
+    }
+
+    .admin-hero-stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .admin-hero-stat {
+        background: rgba(255,255,255,0.12);
+        border-radius: 22px;
+        padding: 18px 16px;
+        text-align: center;
+        backdrop-filter: blur(10px);
+    }
+
+    .admin-hero-stat strong {
+        display: block;
+        font-size: 24px;
+        font-weight: 800;
+        margin-bottom: 6px;
+        color: #fff;
+    }
+
+    .admin-hero-stat span {
+        display: block;
+        font-size: 13px;
+        color: rgba(255,255,255,0.78);
+    }
+
+    .admin-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 18px;
+        margin-bottom: 24px;
+    }
+
+    .admin-stat-card {
+        padding: 22px;
+        border-radius: 28px;
+        color: #fff;
+        box-shadow: var(--shadow-md);
+    }
+
+    .admin-stat-card .label {
+        font-size: 14px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        opacity: 0.92;
+    }
+
+    .admin-stat-card .value {
+        font-size: 34px;
+        font-weight: 800;
+        line-height: 1.15;
+        word-break: break-word;
+    }
+
+    .admin-stat-blue {
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    }
+
+    .admin-stat-green {
+        background: linear-gradient(135deg, #16a34a, #15803d);
+    }
+
+    .admin-stat-orange {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: #111827;
+    }
+
+    .admin-stat-purple {
+        background: linear-gradient(135deg, #7c3aed, #6d28d9);
+    }
+
+    .admin-content-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+        gap: 24px;
+        align-items: start;
+        margin-bottom: 24px;
+    }
+
+    .admin-card-head {
+        padding: 22px 24px 18px;
+        border-bottom: 1px solid var(--line);
+    }
+
+    .admin-card-body {
+        padding: 24px;
+    }
+
+    .admin-section-label {
+        display: inline-block;
+        margin-bottom: 10px;
+        font-size: 12px;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 800;
+    }
+
+    .admin-card-desc {
+        margin-top: 8px;
+        color: var(--muted);
+        line-height: 1.7;
+        font-size: 14px;
+    }
+
+    .admin-chart-wrap {
+        width: 100%;
+        min-height: 380px;
+    }
+
+    .admin-quick-links {
+        display: grid;
+        gap: 14px;
+    }
+
+    .admin-quick-link {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+        padding: 18px;
+        border-radius: 22px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,250,252,0.96));
+        border: 1px solid var(--line);
+        transition: 0.25s ease;
+    }
+
+    .admin-quick-link:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .admin-quick-link strong {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--heading);
+        font-size: 16px;
+    }
+
+    .admin-quick-link span {
+        font-size: 14px;
+        color: var(--muted);
+        line-height: 1.65;
+    }
+
+    .admin-quick-link-arrow {
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--heading);
+        flex-shrink: 0;
+    }
+
+    .admin-orders-card {
+        overflow: hidden;
+    }
+
+    .admin-orders-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 24px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(250,250,250,0.8);
+        flex-wrap: wrap;
+    }
+
+    .admin-orders-meta-item {
+        font-size: 14px;
+        color: #4b5563;
+        font-weight: 600;
+    }
+
+    .admin-table-wrap {
+        padding: 24px;
+    }
+
+    .admin-table-shell {
+        overflow: hidden;
+        border-radius: 24px;
+        border: 1px solid var(--line);
+        background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(250,249,244,0.92));
+    }
+
+    .admin-table-scroll {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .admin-table {
+        width: 100%;
+        min-width: 900px;
+        border-collapse: collapse;
+    }
+
+    .admin-table th,
+    .admin-table td {
+        padding: 18px 16px;
+        border-bottom: 1px solid rgba(38, 75, 53, 0.08);
+        text-align: left;
+        vertical-align: middle;
+    }
+
+    .admin-table th {
+        background: rgba(138, 160, 107, 0.08);
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        white-space: nowrap;
+    }
+
+    .admin-table tbody tr:hover {
+        background: rgba(138, 160, 107, 0.06);
+    }
+
+    .admin-user-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: #f8fafc;
+        border: 1px solid var(--line);
+        font-weight: 700;
+        color: var(--heading);
+    }
+
+    .admin-amount {
+        font-weight: 800;
+        color: var(--primary);
+        white-space: nowrap;
+    }
+
+    .admin-status-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 32px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+    }
+
+    .status-done {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-processing {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-cancelled {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .admin-empty {
+        text-align: center;
+        padding: 28px;
+        color: var(--muted);
+        font-weight: 600;
+    }
+
+    .admin-pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 20px;
+    }
+
+    .admin-pagination .btn {
+        min-width: 42px;
+        min-height: 42px;
+        padding: 0 14px;
+    }
+
+    @media (max-width: 1120px) {
+        .admin-hero-grid,
+        .admin-content-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .admin-stats-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 768px) {
+        .admin-page {
+            padding: 16px 0 30px;
+        }
+
+        .admin-topbar .topbar-wrap {
+            border-radius: 22px;
+        }
+
+        .admin-hero-card {
+            padding: 24px 18px;
+            border-radius: 26px;
+        }
+
+        .admin-hero-stats,
+        .admin-stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .admin-card-body,
+        .admin-table-wrap {
+            padding: 18px;
+        }
+
+        .admin-card-head,
+        .admin-orders-meta {
+            padding-left: 18px;
+            padding-right: 18px;
+        }
+    }
+</style>
+
+<div class="admin-page">
+    <div class="container">
+
+        <div class="admin-topbar">
+            <div class="topbar-wrap">
+                <div class="container topbar">
+                    <div class="brand-block">
+                        <div class="brand-icon">📊</div>
+                        <div class="brand-text">
+                            <h1 class="admin-brand-title">GreenSpace Admin</h1>
+                            <p class="admin-brand-desc">Quản trị tổng quan, trực quan và hiện đại hơn</p>
+                        </div>
+                    </div>
+
+                    <div class="topbar-actions">
+                        <a href="/" class="btn btn-blue">← Trang chủ</a>
+                        <a href="/admin/plants" class="btn btn-green">Quản lý cây</a>
+                        <a href="/admin/users" class="btn btn-outline">Quản lý user</a>
+                        <a href="/admin/orders" class="btn btn-outline">Quản lý đơn</a>
+                        <a href="/admin/chat" class="btn btn-green">Chat hỗ trợ</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="admin-hero">
+            <div class="admin-hero-card">
+                <div class="admin-hero-grid">
+                    <div>
+                        <div class="admin-chip">ADMIN DASHBOARD</div>
+                        <h1 class="admin-hero-title">Tổng quan nhanh về vận hành cửa hàng</h1>
+                        <p class="admin-hero-desc">
+                            Theo dõi số lượng đơn hàng, doanh thu, người dùng và sản phẩm trong một giao diện
+                            gọn gàng hơn, dễ đọc hơn và đồng bộ với toàn bộ GreenSpace.
+                        </p>
+                    </div>
+
+                    <div class="admin-hero-stats">
+                        <div class="admin-hero-stat">
+                            <strong th:text="${totalOrders}">0</strong>
+                            <span>Đơn hàng</span>
+                        </div>
+                        <div class="admin-hero-stat">
+                            <strong th:text="${totalUsers}">0</strong>
+                            <span>Người dùng</span>
+                        </div>
+                        <div class="admin-hero-stat">
+                            <strong th:text="${totalPlants}">0</strong>
+                            <span>Sản phẩm</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="admin-stats-grid">
+            <div class="admin-stat-card admin-stat-blue">
+                <div class="label">Tổng đơn hàng</div>
+                <div class="value" th:text="${totalOrders}">0</div>
+            </div>
+
+            <div class="admin-stat-card admin-stat-green">
+                <div class="label">Tổng doanh thu</div>
+                <div class="value" th:text="${#numbers.formatDecimal(revenue, 0, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</div>
+            </div>
+
+            <div class="admin-stat-card admin-stat-orange">
+                <div class="label">Tổng người dùng</div>
+                <div class="value" th:text="${totalUsers}">0</div>
+            </div>
+
+            <div class="admin-stat-card admin-stat-purple">
+                <div class="label">Tổng sản phẩm</div>
+                <div class="value" th:text="${totalPlants}">0</div>
+            </div>
+        </section>
+
+        <section class="admin-content-grid">
+            <div class="card">
+                <div class="admin-card-head">
+                    <div class="admin-section-label">Thống kê</div>
+                    <h2 class="section-title" style="margin-bottom:0;">Biểu đồ doanh thu theo ngày</h2>
+                    <p class="admin-card-desc">
+                        Theo dõi doanh thu trong các mốc thời gian gần đây để nắm tình hình bán hàng tốt hơn.
+                    </p>
+                </div>
+                <div class="admin-card-body">
+                    <div class="admin-chart-wrap">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="admin-card-head">
+                    <div class="admin-section-label">Điều hướng nhanh</div>
+                    <h2 class="section-title" style="margin-bottom:0;">Truy cập nhanh</h2>
+                    <p class="admin-card-desc">
+                        Đi đến các trang quản trị chính chỉ với một lần bấm.
+                    </p>
+                </div>
+                <div class="admin-card-body">
+                    <div class="admin-quick-links">
+                        <a href="/admin/plants" class="admin-quick-link">
+                            <div>
+                                <strong>Quản lý cây</strong>
+                                <span>Thêm, sửa, xóa và cập nhật tồn kho sản phẩm.</span>
+                            </div>
+                            <span class="admin-quick-link-arrow">→</span>
+                        </a>
+
+                        <a href="/admin/users" class="admin-quick-link">
+                            <div>
+                                <strong>Quản lý user</strong>
+                                <span>Khóa, mở khóa, đổi role và xóa tài khoản.</span>
+                            </div>
+                            <span class="admin-quick-link-arrow">→</span>
+                        </a>
+
+                        <a href="/admin/orders" class="admin-quick-link">
+                            <div>
+                                <strong>Quản lý đơn</strong>
+                                <span>Xác nhận thanh toán, hoàn tất hoặc hủy đơn.</span>
+                            </div>
+                            <span class="admin-quick-link-arrow">→</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card admin-orders-card">
+            <div class="admin-card-head">
+                <div class="admin-section-label">Đơn hàng</div>
+                <h2 class="section-title" style="margin-bottom:0;">Danh sách đơn hàng gần đây</h2>
+                <p class="admin-card-desc">
+                    Xem nhanh tình trạng các đơn hiện tại và kiểm soát phân trang rõ ràng hơn.
+                </p>
+            </div>
+
+            <div class="admin-orders-meta">
+                <div class="admin-orders-meta-item">
+                    Hiển thị 10 đơn mỗi trang • Trang
+                    <span th:text="${currentPage + 1}">1</span> /
+                    <span th:text="${totalPages == 0 ? 1 : totalPages}">1</span>
+                </div>
+                <div class="admin-orders-meta-item">
+                    Số đơn trong trang này:
+                    <span th:text="${#lists.size(orders)}">0</span>
+                </div>
+            </div>
+
+            <div class="admin-table-wrap">
+                <div class="admin-table-shell">
+                    <div class="admin-table-scroll">
+                        <table class="admin-table">
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>User</th>
+                                <th>Tổng tiền</th>
+                                <th>Trạng thái</th>
+                                <th>Ngày tạo</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="o : ${orders}">
+                                <td th:text="${o.id}"></td>
+                                <td>
+                                    <span class="admin-user-chip" th:text="${o.user.username}"></span>
+                                </td>
+                                <td class="admin-amount"
+                                    th:text="${#numbers.formatDecimal(o.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' VND'"></td>
+                                <td>
+                                    <span th:if="${o.status == 'DONE'}" class="admin-status-badge status-done">DONE</span>
+                                    <span th:if="${o.status == 'PROCESSING'}" class="admin-status-badge status-processing">PROCESSING</span>
+                                    <span th:if="${o.status == 'PENDING' or o.status == 'PENDING_PAYMENT'}"
+                                          class="admin-status-badge status-pending"
+                                          th:text="${o.status}"></span>
+                                    <span th:if="${o.status == 'CANCELLED'}" class="admin-status-badge status-cancelled">CANCELLED</span>
+                                </td>
+                                <td th:text="${#temporals.format(o.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                            </tr>
+
+                            <tr th:if="${#lists.isEmpty(orders)}">
+                                <td colspan="5" class="admin-empty">Chưa có đơn hàng nào.</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="admin-pagination" th:if="${totalPages > 0}">
+                    <a th:href="@{/admin(page=${currentPage - 1})}"
+                       class="btn btn-outline"
+                       th:styleappend="${currentPage == 0} ? 'pointer-events:none; opacity:0.45;' : ''">←</a>
+
+                    <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                        <span th:if="${i == currentPage}" class="btn btn-blue" th:text="${i + 1}"></span>
+                        <a th:if="${i != currentPage}"
+                           th:href="@{/admin(page=${i})}"
+                           class="btn btn-outline"
+                           th:text="${i + 1}"></a>
+                    </th:block>
+
+                    <a th:href="@{/admin(page=${currentPage + 1})}"
+                       class="btn btn-outline"
+                       th:styleappend="${currentPage >= totalPages - 1} ? 'pointer-events:none; opacity:0.45;' : ''">→</a>
+                </div>
+            </div>
+        </section>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script th:inline="javascript">
+    const labels = /*[[${chartLabels}]]*/ [];
+    const values = /*[[${chartValues}]]*/ [];
+    const ctx = document.getElementById('revenueChart');
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Doanh thu',
+                data: values,
+                borderWidth: 1,
+                borderRadius: 10,
+                backgroundColor: 'rgba(37, 99, 235, 0.75)',
+                borderColor: 'rgba(37, 99, 235, 1)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: true }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+
+<head th:replace="~{fragments/head :: head('Quản lý cây | GreenSpace Admin')}"></head>
+
+<body>
+
+<style>
+    .admin-plants-page {
+        padding: 24px 0 44px;
+    }
+
+    .admin-plants-topbar {
+        margin-bottom: 24px;
+    }
+
+    .admin-plants-topbar .topbar-wrap {
+        position: static;
+        border-radius: 28px;
+        overflow: hidden;
+    }
+
+    .admin-plants-topbar .topbar {
+        min-height: 88px;
+    }
+
+    .admin-plants-brand-title {
+        font-size: 34px;
+        font-weight: 700;
+        line-height: 1;
+        font-family: 'Cormorant Garamond', serif;
+        color: var(--heading);
+        margin: 0;
+    }
+
+    .admin-plants-brand-desc {
+        font-size: 13px;
+        color: var(--muted);
+        font-weight: 500;
+        margin-top: 4px;
+    }
+
+    .admin-plants-hero {
+        margin-bottom: 24px;
+    }
+
+    .admin-plants-hero-card {
+        overflow: hidden;
+        border-radius: 34px;
+        padding: 34px;
+        background:
+            linear-gradient(135deg, rgba(15,23,42,0.96), rgba(22,101,52,0.92)),
+            url('https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=1400&q=80') center/cover;
+        color: #fff;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .admin-plants-hero-grid {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 24px;
+        align-items: end;
+    }
+
+    .admin-plants-chip {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 16px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.14);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        margin-bottom: 18px;
+    }
+
+    .admin-plants-hero-title {
+        margin: 0 0 16px;
+        font-size: clamp(36px, 5vw, 54px);
+        line-height: 1.04;
+        color: #fff;
+        font-family: 'Cormorant Garamond', serif;
+    }
+
+    .admin-plants-hero-desc {
+        margin: 0;
+        max-width: 760px;
+        font-size: 15px;
+        line-height: 1.85;
+        color: rgba(255,255,255,0.84);
+    }
+
+    .admin-plants-hero-stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .admin-plants-hero-stat {
+        background: rgba(255,255,255,0.12);
+        border-radius: 22px;
+        padding: 18px 16px;
+        text-align: center;
+        backdrop-filter: blur(10px);
+    }
+
+    .admin-plants-hero-stat strong {
+        display: block;
+        font-size: 24px;
+        font-weight: 800;
+        margin-bottom: 6px;
+        color: #fff;
+    }
+
+    .admin-plants-hero-stat span {
+        display: block;
+        font-size: 13px;
+        color: rgba(255,255,255,0.78);
+    }
+
+    .admin-plants-card-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+        padding: 22px 24px 18px;
+        border-bottom: 1px solid var(--line);
+        flex-wrap: wrap;
+        background: rgba(250,250,250,0.92);
+    }
+
+    .admin-plants-label {
+        display: inline-block;
+        margin-bottom: 10px;
+        font-size: 12px;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 800;
+    }
+
+    .admin-plants-card-desc {
+        margin-top: 8px;
+        color: var(--muted);
+        line-height: 1.7;
+        font-size: 14px;
+    }
+
+    .admin-plants-table-wrap {
+        padding: 24px;
+    }
+
+    .admin-plants-table-shell {
+        overflow: hidden;
+        border-radius: 24px;
+        border: 1px solid var(--line);
+        background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(250,249,244,0.92));
+    }
+
+    .admin-plants-table-scroll {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .admin-plants-table {
+        width: 100%;
+        min-width: 1180px;
+        border-collapse: collapse;
+    }
+
+    .admin-plants-table th,
+    .admin-plants-table td {
+        padding: 18px 16px;
+        border-bottom: 1px solid rgba(38, 75, 53, 0.08);
+        text-align: left;
+        vertical-align: middle;
+    }
+
+    .admin-plants-table th {
+        background: rgba(138, 160, 107, 0.08);
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        white-space: nowrap;
+    }
+
+    .admin-plants-table tbody tr:hover {
+        background: rgba(138, 160, 107, 0.05);
+    }
+
+    .plant-id {
+        font-weight: 800;
+        color: var(--heading);
+    }
+
+    .plant-info {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        min-width: 280px;
+    }
+
+    .plant-thumb,
+    .plant-thumb-empty {
+        width: 76px;
+        height: 76px;
+        border-radius: 18px;
+        flex-shrink: 0;
+    }
+
+    .plant-thumb {
+        object-fit: cover;
+        border: 1px solid var(--line);
+        background: #f3f4f6;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+    }
+
+    .plant-thumb-empty {
+        border: 1px solid var(--line);
+        background: #f3f4f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #9ca3af;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .plant-name {
+        font-weight: 800;
+        font-size: 16px;
+        line-height: 1.4;
+        margin-bottom: 4px;
+        letter-spacing: -0.02em;
+        color: var(--heading);
+    }
+
+    .plant-category {
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.6;
+    }
+
+    .plant-price {
+        font-weight: 800;
+        font-size: 18px;
+        color: #166534;
+        letter-spacing: -0.02em;
+        white-space: nowrap;
+    }
+
+    .stock-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .stock-good {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .stock-low {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .stock-out {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .plant-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        min-width: 180px;
+    }
+
+    .plant-actions .btn {
+        min-height: 40px;
+        padding: 0 14px;
+        font-size: 13px;
+        border-radius: 12px;
+    }
+
+    .admin-plants-empty {
+        text-align: center;
+        padding: 30px;
+        color: var(--muted);
+        font-weight: 600;
+    }
+
+    .toast-container {
+        position: fixed;
+        top: 92px;
+        right: 18px;
+        z-index: 2000;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: min(420px, calc(100vw - 24px));
+    }
+
+    .toast {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.97);
+        border: 1px solid rgba(255, 255, 255, 0.82);
+        box-shadow: var(--shadow-lg);
+        backdrop-filter: blur(12px);
+    }
+
+    .toast-icon {
+        flex: 0 0 38px;
+        width: 38px;
+        height: 38px;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+    .toast-content {
+        flex: 1;
+    }
+
+    .toast-title {
+        font-size: 14px;
+        font-weight: 800;
+        margin-bottom: 2px;
+    }
+
+    .toast-message {
+        font-size: 14px;
+        color: #374151;
+        line-height: 1.5;
+    }
+
+    .toast-close {
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        color: #6b7280;
+        font-size: 18px;
+        line-height: 1;
+    }
+
+    .toast-success {
+        border-left: 5px solid #6f9a55;
+    }
+
+    .toast-success .toast-icon {
+        background: rgba(111, 154, 85, 0.12);
+        color: #305537;
+    }
+
+    .toast-hide {
+        opacity: 0;
+        transform: translateY(-10px);
+        transition: all 0.25s ease;
+    }
+
+    @media (max-width: 1120px) {
+        .admin-plants-hero-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .admin-plants-page {
+            padding: 16px 0 30px;
+        }
+
+        .admin-plants-topbar .topbar-wrap {
+            border-radius: 22px;
+        }
+
+        .admin-plants-hero-card {
+            padding: 24px 18px;
+            border-radius: 26px;
+        }
+
+        .admin-plants-hero-stats {
+            grid-template-columns: 1fr;
+        }
+
+        .admin-plants-card-head,
+        .admin-plants-table-wrap {
+            padding-left: 18px;
+            padding-right: 18px;
+        }
+
+        .toast-container {
+            top: 82px;
+            right: 10px;
+            left: 10px;
+            width: auto;
+        }
+    }
+</style>
+
+<div class="toast-container">
+    <div th:if="${successMessage}" class="toast toast-success auto-toast">
+        <div class="toast-icon">✓</div>
+        <div class="toast-content">
+            <div class="toast-title">Thành công</div>
+            <div class="toast-message" th:text="${successMessage}"></div>
+        </div>
+        <button type="button" class="toast-close" onclick="closeToast(this)">×</button>
+    </div>
+</div>
+
+<div class="admin-plants-page">
+    <div class="container">
+
+        <div class="admin-plants-topbar">
+            <div class="topbar-wrap">
+                <div class="container topbar">
+                    <div class="brand-block">
+                        <div class="brand-icon">🌱</div>
+                        <div class="brand-text">
+                            <h1 class="admin-plants-brand-title">GreenSpace Plants</h1>
+                            <p class="admin-plants-brand-desc">Quản lý sản phẩm cây cảnh trực quan và hiện đại hơn</p>
+                        </div>
+                    </div>
+
+                    <div class="topbar-actions">
+                        <a href="/admin" class="btn btn-outline">Dashboard</a>
+                        <a href="/" class="btn btn-blue">← Trang chủ</a>
+                        <a href="/admin/plants/create" class="btn btn-green">Thêm cây</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="admin-plants-hero">
+            <div class="admin-plants-hero-card">
+                <div class="admin-plants-hero-grid">
+                    <div>
+                        <div class="admin-plants-chip">PLANT MANAGEMENT</div>
+                        <h1 class="admin-plants-hero-title">Quản lý danh sách cây trong hệ thống</h1>
+                        <p class="admin-plants-hero-desc">
+                            Theo dõi ảnh sản phẩm, giá bán, danh mục và tồn kho trong một giao diện rõ ràng hơn,
+                            dễ thao tác hơn và đồng bộ với toàn bộ trang admin GreenSpace.
+                        </p>
+                    </div>
+
+                    <div class="admin-plants-hero-stats">
+                        <div class="admin-plants-hero-stat">
+                            <strong th:text="${#lists.size(plants)}">0</strong>
+                            <span>Sản phẩm hiện có</span>
+                        </div>
+                        <div class="admin-plants-hero-stat">
+                            <strong>Easy</strong>
+                            <span>Quản lý nhanh</span>
+                        </div>
+                        <div class="admin-plants-hero-stat">
+                            <strong>Clean</strong>
+                            <span>Giao diện đồng bộ</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="admin-plants-card-head">
+                <div>
+                    <div class="admin-plants-label">Danh sách sản phẩm</div>
+                    <h2 class="section-title" style="margin-bottom:0;">Toàn bộ cây cảnh</h2>
+                    <p class="admin-plants-card-desc">Quản lý ảnh, giá, tồn kho và chỉnh sửa thông tin từng sản phẩm.</p>
+                </div>
+            </div>
+
+            <div class="admin-plants-table-wrap">
+                <div class="admin-plants-table-shell">
+                    <div class="admin-plants-table-scroll">
+                        <table class="admin-plants-table">
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Sản phẩm</th>
+                                <th>Giá</th>
+                                <th>Tồn kho</th>
+                                <th>Hành động</th>
+                            </tr>
+                            </thead>
+
+                            <tbody>
+                            <tr th:each="p : ${plants}">
+                                <td class="plant-id" th:text="${p.id}"></td>
+
+                                <td>
+                                    <div class="plant-info">
+                                        <img th:if="${p.imageUrl != null and !#strings.isEmpty(p.imageUrl)}"
+                                             th:src="${p.imageUrl}"
+                                             alt="Ảnh cây"
+                                             class="plant-thumb">
+
+                                        <div th:if="${p.imageUrl == null or #strings.isEmpty(p.imageUrl)}"
+                                             class="plant-thumb-empty">
+                                            No img
+                                        </div>
+
+                                        <div>
+                                            <div class="plant-name" th:text="${p.name}"></div>
+                                            <div class="plant-category"
+                                                 th:text="${(p.category != null and !#strings.isEmpty(p.category)) ? p.category : 'Chưa có danh mục'}"></div>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="plant-price">
+                                    <span th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')}"></span> VND
+                                </td>
+
+                                <td>
+                                    <span th:if="${p.stock > 5}" class="stock-badge stock-good">
+                                        <span th:text="${p.stock}"></span>&nbsp;sản phẩm
+                                    </span>
+
+                                    <span th:if="${p.stock > 0 and p.stock <= 5}" class="stock-badge stock-low">
+                                        <span th:text="${p.stock}"></span>&nbsp;sản phẩm
+                                    </span>
+
+                                    <span th:if="${p.stock <= 0}" class="stock-badge stock-out">
+                                        Hết hàng
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <div class="plant-actions">
+                                        <a th:href="@{/admin/plants/edit/{id}(id=${p.id})}"
+                                           class="btn btn-blue">
+                                            Sửa
+                                        </a>
+
+                                        <form th:action="@{/admin/plants/delete}" method="post" style="display:inline;"
+                                              onsubmit="return confirm('Bạn có chắc muốn xóa cây này không?');">
+                                            <input type="hidden" name="id" th:value="${p.id}">
+                                            <button type="submit"
+                                                    class="btn"
+                                                    style="background:#dc2626; color:white;">
+                                                Xóa
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr th:if="${#lists.isEmpty(plants)}">
+                                <td colspan="5" class="admin-plants-empty">Chưa có cây nào trong hệ thống.</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+</div>
+
+<script>
+    function closeToast(button) {
+        const toast = button.closest('.toast');
+        if (!toast) return;
+        toast.classList.add('toast-hide');
+        setTimeout(() => toast.remove(), 250);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const toasts = document.querySelectorAll('.auto-toast');
+        toasts.forEach((toast, index) => {
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.classList.add('toast-hide');
+                    setTimeout(() => toast.remove(), 250);
+                }
+            }, 3800 + index * 250);
+        });
+    });
+</script>
+
+</body>
+</html>

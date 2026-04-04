@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+
+<head th:replace="~{fragments/head :: head('Trang chủ | GreenSpace')}"></head>
+
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main>
+
+    <section class="hero">
+        <div class="container hero-content">
+            <h1>Không gian xanh cho cuộc sống hiện đại</h1>
+            <p>Khám phá bộ sưu tập cây cảnh tinh tế, mang thiên nhiên vào ngôi nhà của bạn</p>
+        </div>
+    </section>
+
+    <div class="container" style="padding: 30px 0;">
+
+        <div th:if="${infoMessage}" class="card" style="margin-bottom:16px;">
+            <span th:text="${infoMessage}"></span>
+        </div>
+
+        <div class="search-box">
+            <form th:action="@{/}" method="get" class="search-form">
+                <input type="text"
+                       name="keyword"
+                       th:value="${keyword}"
+                       placeholder="Tìm kiếm cây cảnh bạn yêu thích...">
+
+                <button type="submit" class="btn btn-green">Tìm kiếm</button>
+
+                <a th:href="@{/}" class="btn btn-outline">Xóa</a>
+            </form>
+        </div>
+
+        <h2 class="section-title big">🌿 Bộ sưu tập cây cảnh</h2>
+
+        <div th:if="${#lists.isEmpty(plants)}" class="empty-state">
+            Không có sản phẩm nào
+        </div>
+
+        <div th:if="${not #lists.isEmpty(plants)}" class="grid-3">
+
+            <div class="product-card" th:each="plant : ${plants}">
+
+                <div class="product-image-wrap">
+                    <img th:src="${plant.imageUrl}" class="product-image">
+
+                    <div th:if="${plant.stock == null or plant.stock <= 0}" class="badge-out">
+                        Hết hàng
+                    </div>
+                </div>
+
+                <div class="product-body">
+                    <h3 th:text="${plant.name}"></h3>
+
+                    <p class="price">
+                        <span th:text="${#numbers.formatDecimal(plant.price, 0, 'COMMA', 0, 'POINT')}"></span> VND
+                    </p>
+
+                    <p class="stock"
+                       th:if="${plant.stock != null and plant.stock > 0}"
+                       th:text="'Còn ' + ${plant.stock} + ' sản phẩm'">
+                    </p>
+
+                    <form th:action="@{/cart/add}" method="post">
+                        <input type="hidden" name="plantId" th:value="${plant.id}">
+
+                        <button type="submit"
+                                class="btn btn-green product-btn"
+                                th:classappend="${plant.stock == null or plant.stock <= 0} ? ' btn-disabled' : ''"
+                                th:disabled="${plant.stock == null or plant.stock <= 0}">
+                            Thêm vào giỏ
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

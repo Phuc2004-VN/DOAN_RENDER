@@ -460,6 +460,10 @@
     }
 
     document.addEventListener('DOMContentLoaded', async function () {
+        // Lấy admin username từ backend
+        const userResponse = await fetch('/admin/current-user');
+        const ROLE_ADMIN = await userResponse.text();
+        
         await loadUnreadDetail();
         connect();
         loadUsers();
